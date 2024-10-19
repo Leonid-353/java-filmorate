@@ -2,6 +2,7 @@ package ru.yandex.practicum.filmorate.controller;
 
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.exception.ConditionsNotMetException;
@@ -22,11 +23,13 @@ public class UserController {
     Map<Long, User> users = new HashMap<>();
 
     @GetMapping
+    @ResponseStatus(HttpStatus.OK)
     public Collection<User> findAllUsers() {
         return users.values();
     }
 
     @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
     public User createUser(@Valid @RequestBody User user) {
         for (Map.Entry<Long, User> entry : users.entrySet()) {
             log.debug("Рассматривается пользователь: {}", entry.getValue().getName());
