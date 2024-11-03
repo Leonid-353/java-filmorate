@@ -7,7 +7,6 @@ import jakarta.validation.constraints.Pattern;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.experimental.FieldDefaults;
-import ru.yandex.practicum.filmorate.exception.DuplicatedDataException;
 
 import java.time.LocalDate;
 import java.util.HashSet;
