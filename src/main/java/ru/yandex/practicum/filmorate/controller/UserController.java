@@ -2,98 +2,86 @@ package ru.yandex.practicum.filmorate.controller;
 
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.filmorate.exception.ConditionsNotMetException;
-import ru.yandex.practicum.filmorate.exception.DuplicatedDataException;
-import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.service.user.UserService;
+import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
 
 @Slf4j
 @Validated
 @RestController
 @RequestMapping("/users")
 public class UserController {
+    final UserStorage userStorage;
+    final UserService userService;
 
-    Map<Long, User> users = new HashMap<>();
+    @Autowired
+    public UserController(UserStorage userStorage, UserService userService) {
+        this.userStorage = userStorage;
+        this.userService = userService;
+    }
 
+    // Methods working with user storage
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
     public Collection<User> findAllUsers() {
-        return users.values();
+        return userStorage.findAllUsers();
+    }
+
+    @GetMapping("/{userId}")
+    @ResponseStatus(HttpStatus.OK)
+    public User findUser(@PathVariable("userId") Long userId) {
+        return userStorage.findUser(userId);
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public User createUser(@Valid @RequestBody User user) {
-        for (Map.Entry<Long, User> entry : users.entrySet()) {
-            log.debug("Рассматривается пользователь: {}", entry.getValue().getName());
-            if (entry.getValue().getEmail().equals(user.getEmail())) {
-                log.warn("При добавлении указан занятый email");
-                throw new DuplicatedDataException("Этот email уже используется");
-            }
-            if (entry.getValue().getLogin().equals(user.getLogin())) {
-                log.warn("При добавлении указан занятый login");
-                throw new DuplicatedDataException("Этот login уже используется");
-            }
-        }
-        user.setId(getNextId());
-        log.debug("Для пользователя устновлен id: {}", user.getId());
-        user.setName(user.getName());
-        log.trace("Для пользователя установлено поле name: {}", user.getName());
-        users.put(user.getId(), user);
-        log.info("Пользователь успешно добавлен");
-        return user;
+        return userStorage.createUser(user);
     }
 
     @PutMapping
+    @ResponseStatus(HttpStatus.OK)
     public User updateUser(@Valid @RequestBody User newUser) {
-        // проверяем необходимые условия
-        if (newUser.getId() == null) {
-            log.warn("Id пользователя не указан");
-            throw new ConditionsNotMetException("Id должен быть указан");
-        }
-        if (users.containsKey(newUser.getId())) {
-            log.trace("Пользователь найден в хранилище");
-            User oldUser = users.get(newUser.getId());
-            if (!oldUser.equals(newUser)) {
-                for (Map.Entry<Long, User> entry : users.entrySet()) {
-                    if (entry.getValue().getEmail().equals(newUser.getEmail())) {
-                        log.warn("При обновлении указан занятый email");
-                        throw new DuplicatedDataException("Этот email уже используется");
-                    }
-                    if (entry.getValue().getLogin().equals(newUser.getLogin())) {
-                        log.warn("При обновлении указан занятый login");
-                        throw new DuplicatedDataException("Этот login уже используется");
-                    }
-                }
-                log.trace("Обновление данных о пользователе");
-                oldUser.setEmail(newUser.getEmail());
-                oldUser.setLogin(newUser.getLogin());
-                oldUser.setName(newUser.getName());
-                oldUser.setBirthday(newUser.getBirthday());
-                log.info("Данные о пользователе обновлены");
-                return oldUser;
-            } else {
-                log.info("Данные о пользователе обновлять не требуется");
-                return oldUser;
-            }
-        }
-        log.warn("Пользователь не найден в хранилище");
-        throw new NotFoundException("Пользователь с id = " + newUser.getId() + " не найден");
+        return userStorage.updateUser(newUser);
     }
 
-    private long getNextId() {
-        long currentMaxId = users.keySet()
-                .stream()
-                .mapToLong(id -> id)
-                .max()
-                .orElse(0);
-        return ++currentMaxId;
+    @DeleteMapping("/{userId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void removeUser(@PathVariable("userId") Long userId) {
+        userStorage.removeUser(userId);
+    }
+
+    // Methods working with user service
+    @GetMapping("/{userId}/friends")
+    @ResponseStatus(HttpStatus.OK)
+    public Collection<User> findAllFriendsUser(@PathVariable("userId") Long userId) {
+        return userService.findAllFriendsUser(userId);
+    }
+
+    @GetMapping("/{userId}/friends/common/{otherId}")
+    @ResponseStatus(HttpStatus.OK)
+    public Collection<User> findCommonFriendsUser(@PathVariable("userId") Long userId,
+                                                  @PathVariable("otherId") Long otherUserId) {
+        return userService.findCommonFriendsUser(userId, otherUserId);
+    }
+
+    @PutMapping("/{userId}/friends/{friendId}")
+    @ResponseStatus(HttpStatus.OK)
+    public void addAsFriend(@PathVariable("userId") Long userId,
+                            @PathVariable("friendId") Long friendId) {
+        userService.addAsFriend(userId, friendId);
+    }
+
+    @DeleteMapping("/{userId}/friends/{friendId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void unfriend(@PathVariable("userId") Long userId,
+                         @PathVariable("friendId") Long friendId) {
+        userService.unfriend(userId, friendId);
     }
 }

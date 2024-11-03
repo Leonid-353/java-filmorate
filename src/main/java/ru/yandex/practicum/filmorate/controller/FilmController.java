@@ -1,13 +1,18 @@
 package ru.yandex.practicum.filmorate.controller;
 
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.exception.ConditionsNotMetException;
 import ru.yandex.practicum.filmorate.exception.DuplicatedDataException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.service.film.FilmService;
+import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -18,62 +23,65 @@ import java.util.Map;
 @RestController
 @RequestMapping("/films")
 public class FilmController {
+    final FilmStorage filmStorage;
+    final FilmService filmService;
 
-    Map<Long, Film> films = new HashMap<>();
+    @Autowired
+    public FilmController(FilmStorage filmStorage, FilmService filmService) {
+        this.filmStorage = filmStorage;
+        this.filmService = filmService;
+    }
 
+    // Methods working with user storage
     @GetMapping
+    @ResponseStatus(HttpStatus.OK)
     public Collection<Film> findAllFilms() {
-        return films.values();
+        return filmStorage.findAllFilms();
+    }
+
+    @GetMapping("/{filmId}")
+    @ResponseStatus(HttpStatus.OK)
+    public Film findFilm(@PathVariable("filmId") Long filmId) {
+        return filmStorage.findFilm(filmId);
     }
 
     @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
     public Film createFilm(@Valid @RequestBody Film film) {
-        for (Map.Entry<Long, Film> entry : films.entrySet()) {
-            log.debug("Рассматривается фильм: {}", entry.getValue().getName());
-            if (entry.getValue().getName().equals(film.getName())) {
-                log.warn("Попытка добавления уже существующего фильма");
-                throw new DuplicatedDataException("Фильм с таким названием уже существует");
-            }
-        }
-        film.setId(getNextId());
-        log.debug("Для фильма установлен id: {}", film.getId());
-        films.put(film.getId(), film);
-        log.info("Фильм успешно добавлен");
-        return film;
+        return filmStorage.createFilm(film);
     }
 
     @PutMapping
+    @ResponseStatus(HttpStatus.OK)
     public Film updateFilm(@Valid @RequestBody Film newFilm) {
-        if (newFilm.getId() == null) {
-            log.warn("Id фильма не указан");
-            throw new ConditionsNotMetException("Id должен быть указан");
-        }
-        if (films.containsKey(newFilm.getId())) {
-            log.trace("Фильм найден в хранилище");
-            Film oldFilm = films.get(newFilm.getId());
-            if (!newFilm.equals(oldFilm)) {
-                log.trace("Обновление данных о фильме");
-                oldFilm.setName(newFilm.getName());
-                oldFilm.setDescription(newFilm.getDescription());
-                oldFilm.setReleaseDate(newFilm.getReleaseDate());
-                oldFilm.setDuration(newFilm.getDuration());
-                log.info("Данные о фильме успешно обновлены");
-                return oldFilm;
-            } else {
-                log.info("Данные о фильме обновлять не требуется");
-                return oldFilm;
-            }
-        }
-        log.warn("Фильм не найден в хранилище");
-        throw new NotFoundException("Фильм с id = " + newFilm.getId() + " не найден");
+        return filmStorage.updateFilm(newFilm);
     }
 
-    private long getNextId() {
-        long currentMaxId = films.keySet()
-                .stream()
-                .mapToLong(id -> id)
-                .max()
-                .orElse(0);
-        return ++currentMaxId;
+    @DeleteMapping("/{filmId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void removeFilm(@PathVariable("filmId") Long filmId) {
+        filmStorage.removeFilm(filmId);
     }
+
+    // Methods working with user service
+    @GetMapping("/popular")
+    @ResponseStatus(HttpStatus.OK)
+    public Collection<Film> findPopularFilms(@RequestParam(defaultValue = "10") Long count) {
+        return filmService.findPopularFilms(count);
+    }
+
+    @PutMapping("/{filmId}/like/{userId}")
+    @ResponseStatus(HttpStatus.OK)
+    public void likeIt(@PathVariable("filmId") Long filmId,
+                       @PathVariable("userId") Long userId) {
+        filmService.likeIt(filmId, userId);
+    }
+
+    @DeleteMapping("/{filmId}/like/{userId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void removeLikes(@PathVariable("filmId") Long filmId,
+                            @PathVariable("userId") Long userId) {
+        filmService.removeLikes(filmId, userId);
+    }
+
 }
