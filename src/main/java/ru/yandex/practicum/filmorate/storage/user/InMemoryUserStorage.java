@@ -45,11 +45,9 @@ public class InMemoryUserStorage implements UserStorage {
             }
         }
         user.setId(getNextId());
-        log.debug("Для пользователя устновлен id: {}", user.getId());
         user.setName(user.getName());
-        log.trace("Для пользователя установлено поле name: {}", user.getName());
         users.put(user.getId(), user);
-        log.info("Пользователь успешно добавлен");
+        log.info("Пользователь id = {}, name = \"{}\" успешно добавлен", user.getId(), user.getName());
         return user;
     }
 
@@ -60,7 +58,6 @@ public class InMemoryUserStorage implements UserStorage {
             throw new ConditionsNotMetException("Id должен быть указан");
         }
         if (users.containsKey(newUser.getId())) {
-            log.trace("Пользователь найден в хранилище");
             User oldUser = users.get(newUser.getId());
             if (!oldUser.equals(newUser)) {
                 for (Map.Entry<Long, User> entry : users.entrySet()) {
@@ -73,7 +70,6 @@ public class InMemoryUserStorage implements UserStorage {
                         throw new DuplicatedDataException("Этот login уже используется");
                     }
                 }
-                log.trace("Обновление данных о пользователе");
                 oldUser.setEmail(newUser.getEmail());
                 oldUser.setLogin(newUser.getLogin());
                 oldUser.setName(newUser.getName());

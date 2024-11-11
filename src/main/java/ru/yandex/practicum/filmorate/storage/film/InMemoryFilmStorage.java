@@ -41,9 +41,8 @@ public class InMemoryFilmStorage implements FilmStorage {
             }
         }
         film.setId(getNextId());
-        log.debug("Для фильма установлен id: {}", film.getId());
         films.put(film.getId(), film);
-        log.info("Фильм успешно добавлен");
+        log.info("Фильм id = {} успешно добавлен", film.getId());
         return film;
     }
 
@@ -54,10 +53,8 @@ public class InMemoryFilmStorage implements FilmStorage {
             throw new ConditionsNotMetException("Id должен быть указан");
         }
         if (films.containsKey(newFilm.getId())) {
-            log.trace("Фильм найден в хранилище");
             Film oldFilm = films.get(newFilm.getId());
             if (!newFilm.equals(oldFilm)) {
-                log.trace("Обновление данных о фильме");
                 oldFilm.setName(newFilm.getName());
                 oldFilm.setDescription(newFilm.getDescription());
                 oldFilm.setReleaseDate(newFilm.getReleaseDate());
