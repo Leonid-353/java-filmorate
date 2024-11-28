@@ -10,6 +10,8 @@ import lombok.experimental.FieldDefaults;
 import ru.yandex.practicum.filmorate.validation.FilmMinimumReleaseDate;
 
 import java.time.LocalDate;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Film.
@@ -27,4 +29,17 @@ public class Film {
     LocalDate releaseDate;
     @Positive(message = "Продолжительность фильма должна быть положительным числом")
     long duration;
+    Set<Long> likes = new HashSet<>();
+
+    public boolean addUserIdInLikes(Long userId) {
+        return likes.add(userId);
+    }
+
+    public boolean removeUserIdInLikes(Long userId) {
+        return likes.remove(userId);
+    }
+
+    public Long getLikesSize() {
+        return (long) likes.size();
+    }
 }
