@@ -1,18 +1,19 @@
 package ru.yandex.practicum.filmorate.storage.film;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exception.ConditionsNotMetException;
 import ru.yandex.practicum.filmorate.exception.DuplicatedDataException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
-import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.film.Film;
 
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 @Slf4j
-@Component
+//@Component
+//@Qualifier("inMemoryFilmStorage")
 public class InMemoryFilmStorage implements FilmStorage {
 
     final Map<Long, Film> films = new HashMap<>();
@@ -23,12 +24,12 @@ public class InMemoryFilmStorage implements FilmStorage {
     }
 
     @Override
-    public Film findFilm(Long filmId) {
+    public Optional<Film> findFilm(Long filmId) {
         if (!films.containsKey(filmId)) {
             log.warn("Запрос на получение. Фильм с id: {} не найден в хранилище", filmId);
             throw new NotFoundException(String.format("Фильм с id: %d не найден в хранилище", filmId));
         }
-        return films.get(filmId);
+        return Optional.of(films.get(filmId));
     }
 
     @Override
