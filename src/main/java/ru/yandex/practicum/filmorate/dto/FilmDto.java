@@ -2,6 +2,8 @@ package ru.yandex.practicum.filmorate.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
+import ru.yandex.practicum.filmorate.model.film.Genre;
+import ru.yandex.practicum.filmorate.model.film.Mpa;
 
 import java.time.LocalDate;
 import java.util.Set;
@@ -13,8 +15,8 @@ public class FilmDto {
     private String name;
     private String description;
     private LocalDate releaseDate;
-    private long duration;
-    private long likes;
-    private Set<String> genre;
-    private String mpa;
+    private Integer duration;
+    private Long likes;
+    private Set<Genre> genres;
+    private Mpa mpa;
 }

@@ -28,9 +28,9 @@ public class Film {
     @FilmMinimumReleaseDate
     LocalDate releaseDate;
     @Positive(message = "Продолжительность фильма должна быть положительным числом")
-    long duration;
+    Integer duration;
     Set<Long> likes = new HashSet<>();
-    Set<String> genres = new HashSet<>();
+    Set<Genre> genres = new HashSet<>();
     Mpa mpa;
 
     public boolean addUserIdInLikes(Long userId) {

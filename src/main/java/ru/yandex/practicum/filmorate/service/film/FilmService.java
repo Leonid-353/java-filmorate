@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.service.film;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.dto.FilmDto;
 import ru.yandex.practicum.filmorate.dto.NewFilmRequest;
@@ -21,15 +22,16 @@ import java.util.stream.Collectors;
 
 @Service
 public class FilmService {
-    final FilmDbStorage filmDbStorage;
-    final UserDbStorage userDbStorage;
-    final GenreDbStorage genreDbStorage;
-    final MpaDbStorage mpaDbStorage;
+    private final FilmDbStorage filmDbStorage;
+    private final UserDbStorage userDbStorage;
+    private final GenreDbStorage genreDbStorage;
+    private final MpaDbStorage mpaDbStorage;
 
-    public FilmService(/*@Qualifier("filmDbStorage") */FilmDbStorage filmDbStorage,
-            /*@Qualifier("userDbStorage") */UserDbStorage userDbStorage,
-                                                       GenreDbStorage genreDbStorage,
-                                                       MpaDbStorage mpaDbStorage) {
+    @Autowired
+    public FilmService(FilmDbStorage filmDbStorage,
+                       UserDbStorage userDbStorage,
+                       GenreDbStorage genreDbStorage,
+                       MpaDbStorage mpaDbStorage) {
         this.filmDbStorage = filmDbStorage;
         this.userDbStorage = userDbStorage;
         this.genreDbStorage = genreDbStorage;
@@ -54,9 +56,10 @@ public class FilmService {
     public FilmDto createFilm(NewFilmRequest newFilmRequest) {
         Film film = FilmMapper.mapToFilm(newFilmRequest);
         Mpa filmMpa = film.getMpa();
-        filmMpa.setId(filmDbStorage.findMpaId(newFilmRequest.getMpa()).orElseThrow());
-        filmMpa.setName(newFilmRequest.getMpa());
-        film.setMpa(filmMpa);
+        filmMpa.setName(filmDbStorage.findMpaName(filmMpa.getId()).orElseThrow());
+        if (film.getGenres() != null) {
+            film.getGenres().forEach(genre -> genre.setName(filmDbStorage.findGenreName(genre.getId()).orElseThrow()));
+        }
         filmDbStorage.createFilm(film);
         return FilmMapper.mapToFilmDto(film);
     }
@@ -67,10 +70,9 @@ public class FilmService {
                 .map(film -> FilmMapper.updateFilmFields(film, updateFilmRequest))
                 .orElseThrow(() -> new NotFoundException("Фильм не найден"));
         Mpa filmMpa = updateFilm.getMpa();
-        filmMpa.setId(filmDbStorage.findMpaId(updateFilmRequest.getMpa()).orElseThrow());
-        filmMpa.setName(updateFilmRequest.getMpa());
-        updateFilm.setMpa(filmMpa);
-        updateFilm = filmDbStorage.updateFilm(updateFilm);
+        filmMpa.setName(filmDbStorage.findMpaName(filmMpa.getId()).orElseThrow());
+        updateFilm.getGenres().forEach(genre -> genre.setName(filmDbStorage.findGenreName(genre.getId()).orElseThrow()));
+        filmDbStorage.updateFilm(updateFilm);
         return FilmMapper.mapToFilmDto(updateFilm);
     }
 

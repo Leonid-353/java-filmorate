@@ -16,12 +16,10 @@ import java.util.Collection;
 @RestController
 @RequestMapping("/films")
 public class FilmController {
-    //final FilmDbStorage filmStorage;
     final FilmService filmService;
 
     @Autowired
-    public FilmController(/*@Qualifier("filmDbStorage") FilmDbStorage filmStorage, */FilmService filmService) {
-        //this.filmStorage = filmStorage;
+    public FilmController(FilmService filmService) {
         this.filmService = filmService;
     }
 

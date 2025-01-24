@@ -6,6 +6,10 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import ru.yandex.practicum.filmorate.exception.InternalServerException;
+import ru.yandex.practicum.filmorate.model.film.Genre;
+import ru.yandex.practicum.filmorate.model.film.Mpa;
+import ru.yandex.practicum.filmorate.storage.genre.mapper.GenreRowMapper;
+import ru.yandex.practicum.filmorate.storage.mpa.mapper.MpaRowMapper;
 
 import java.sql.PreparedStatement;
 import java.sql.Statement;
@@ -45,12 +49,25 @@ public class BaseDbStorage<T> {
         }
     }
 
+    protected Optional<Mpa> findOneMpa(String query, Object... params) {
+        try {
+            Mpa result = jdbc.queryForObject(query, new MpaRowMapper(), params);
+            return Optional.ofNullable(result);
+        } catch (EmptyResultDataAccessException ignored) {
+            return Optional.empty();
+        }
+    }
+
     protected List<T> findMany(String query, Object... params) {
-        return jdbc.queryForList(query, entityType, params);
+        return jdbc.query(query, mapper, params);
     }
 
     protected List<Long> findManyId(String query, Object... params) {
         return jdbc.queryForList(query, Long.class, params);
+    }
+
+    protected List<Genre> findManyGenre(String query, Object... params) {
+        return jdbc.query(query, new GenreRowMapper(), params);
     }
 
     protected List<String> findManyString(String query, Object... params) {
@@ -67,7 +84,7 @@ public class BaseDbStorage<T> {
             return ps;
         }, keyHolder);
 
-        Long id = keyHolder.getKeyAs(Long.class);
+        Integer id = keyHolder.getKeyAs(Integer.class);
         if (id != null) {
             return id;
         } else {

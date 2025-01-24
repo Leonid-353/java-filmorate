@@ -7,15 +7,17 @@ import ru.yandex.practicum.filmorate.dto.UpdateUserRequest;
 import ru.yandex.practicum.filmorate.dto.UserDto;
 import ru.yandex.practicum.filmorate.model.user.User;
 
-//@Component
+import java.util.HashSet;
+
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class UserMapper {
     public static User mapToUser(NewUserRequest request) {
         User user = new User();
-        user.setEmail(request.getEmail());
         user.setLogin(request.getLogin());
         user.setName(request.getName());
+        user.setEmail(request.getEmail());
         user.setBirthday(request.getBirthday());
+        user.setFriends(new HashSet<>());
 
         return user;
     }

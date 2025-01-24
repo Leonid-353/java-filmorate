@@ -12,21 +12,23 @@ import ru.yandex.practicum.filmorate.model.user.User;
 import ru.yandex.practicum.filmorate.storage.user.UserDbStorage;
 
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.Optional;
 import java.util.Set;
 
 @Service
 public class UserService {
-    final UserDbStorage userDbStorage;
+    private final UserDbStorage userDbStorage;
 
     @Autowired
-    public UserService(/*@Qualifier("userDbStorage") */UserDbStorage userDbStorage) {
+    public UserService(UserDbStorage userDbStorage) {
         this.userDbStorage = userDbStorage;
     }
 
     public Collection<UserDto> findAllUsersDto() {
         return userDbStorage.findAllUsers().stream()
                 .map(UserMapper::mapToUserDto)
+                .sorted(Comparator.comparing(UserDto::getId))
                 .toList();
     }
 
@@ -55,11 +57,16 @@ public class UserService {
     }
 
     public Collection<User> findAllFriendsUser(Long userId) {
-        return userDbStorage.findUser(userId).map(User::getFriends).stream()
-                .flatMap(Collection::stream)
-                .map(userDbStorage::findUser)
-                .map(Optional::orElseThrow)
-                .toList();
+        Optional<User> userOpt = userDbStorage.findUser(userId);
+        if (userOpt.isPresent()) {
+            return userOpt.map(User::getFriends).stream()
+                    .flatMap(Collection::stream)
+                    .map(userDbStorage::findUser)
+                    .map(Optional::orElseThrow)
+                    .toList();
+        } else {
+            throw new NotFoundException("Пользователь с id " + userId + " не найден");
+        }
     }
 
     public Collection<User> findCommonFriendsUser(Long userId, Long otherUserId) {
@@ -75,8 +82,14 @@ public class UserService {
     public void addAsFriend(Long userId, Long friendId) {
         User user = userDbStorage.findUser(userId).orElseThrow();
         User friend = userDbStorage.findUser(friendId).orElseThrow();
-        if (user.addFriendId(friend.getId())) {
+        if (!user.getFriends().contains(friend.getId()) && !friend.getFriends().contains(user.getId())) {
+            user.addFriendId(friend.getId());
             userDbStorage.addFriendRequest(userId, friendId);
+        } else if (!user.getFriends().contains(friend.getId()) && friend.getFriends().contains(user.getId())) {
+            user.addFriendId(friend.getId());
+            userDbStorage.addFriendRequest(user.getId(), friend.getId());
+            userDbStorage.confirmationFriend(user.getId(), friend.getId());
+            userDbStorage.confirmationFriend(friend.getId(), user.getId());
         } else {
             throw new DuplicatedDataException("Запрос на добавление в друзья уже отправлен");
         }

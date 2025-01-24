@@ -17,11 +17,4 @@ public interface UserStorage {
 
     void removeUser(Long userId);
 
-    /*void addFriendRequest(Long userId, Long friendId);
-
-    void confirmationFriend(Long userId, Long friendId);
-
-    Collection<Long> findFriendRequests(Long userId);
-
-    void unfriend(Long userId, Long friendId);*/
 }

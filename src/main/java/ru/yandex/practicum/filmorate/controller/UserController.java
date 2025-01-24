@@ -17,16 +17,13 @@ import java.util.Collection;
 @RestController
 @RequestMapping("/users")
 public class UserController {
-    //final UserDbStorage userStorage;
     final UserService userService;
 
     @Autowired
-    public UserController(/*@Qualifier("userDbStorage") UserDbStorage userStorage, */UserService userService) {
-        //this.userStorage = userStorage;
+    public UserController(UserService userService) {
         this.userService = userService;
     }
 
-    // Methods working with user storage
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
     public Collection<UserDto> findAllUsers() {
@@ -57,7 +54,6 @@ public class UserController {
         userService.removeUser(userId);
     }
 
-    // Methods working with user service
     @GetMapping("/{userId}/friends")
     @ResponseStatus(HttpStatus.OK)
     public Collection<User> findAllFriendsUser(@PathVariable("userId") Long userId) {
