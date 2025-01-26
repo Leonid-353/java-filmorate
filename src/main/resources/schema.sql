@@ -16,6 +16,10 @@ CREATE TABLE IF NOT EXISTS users (
   birthday DATE
 );
 
+-- Создаем уникальные индексы для полей email и login
+CREATE UNIQUE INDEX IF NOT EXISTS USER_EMAIL_UINDEX ON users(email);
+CREATE UNIQUE INDEX IF NOT EXISTS USER_LOGIN_UINDEX ON users(login);
+
 -- Создаем таблицу фильмов
 CREATE TABLE IF NOT EXISTS films (
   id INT AUTO_INCREMENT PRIMARY KEY,
