@@ -2,7 +2,7 @@ package ru.yandex.practicum.filmorate.storage.film;
 
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
-import ru.yandex.practicum.filmorate.exception.BadRequestException;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.film.Film;
 import ru.yandex.practicum.filmorate.model.film.Genre;
 import ru.yandex.practicum.filmorate.storage.BaseDbStorage;
@@ -56,7 +56,7 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
 
     public Optional<String> findMpaName(Long mpaId) {
         if (mpaId < 1 || mpaId > 5) {
-            throw new BadRequestException("Рейтинг MPA c id = " + mpaId + " не существует.");
+            throw new NotFoundException("Рейтинг MPA c id = " + mpaId + " не существует.");
         } else {
             return findOneString(FIND_BY_ID_MPA, mpaId);
         }
@@ -64,7 +64,7 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
 
     public Optional<String> findGenreName(Long genreId) {
         if (genreId < 1 || genreId > 6) {
-            throw new BadRequestException("Жанр с id = " + genreId + " не существует.");
+            throw new NotFoundException("Жанр с id = " + genreId + " не существует.");
         } else {
             return findOneString(FIND_BY_ID_GENRE, genreId);
         }
