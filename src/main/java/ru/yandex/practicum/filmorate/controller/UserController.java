@@ -5,9 +5,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.dto.NewUserRequest;
+import ru.yandex.practicum.filmorate.dto.UpdateUserRequest;
+import ru.yandex.practicum.filmorate.dto.UserDto;
+import ru.yandex.practicum.filmorate.model.user.User;
 import ru.yandex.practicum.filmorate.service.user.UserService;
-import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
 import java.util.Collection;
 
@@ -15,47 +17,43 @@ import java.util.Collection;
 @RestController
 @RequestMapping("/users")
 public class UserController {
-    final UserStorage userStorage;
     final UserService userService;
 
     @Autowired
-    public UserController(UserStorage userStorage, UserService userService) {
-        this.userStorage = userStorage;
+    public UserController(UserService userService) {
         this.userService = userService;
     }
 
-    // Methods working with user storage
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
-    public Collection<User> findAllUsers() {
-        return userStorage.findAllUsers();
+    public Collection<UserDto> findAllUsers() {
+        return userService.findAllUsersDto();
     }
 
     @GetMapping("/{userId}")
     @ResponseStatus(HttpStatus.OK)
-    public User findUser(@PathVariable("userId") Long userId) {
-        return userStorage.findUser(userId);
+    public UserDto findUser(@PathVariable("userId") Long userId) {
+        return userService.findUserDto(userId);
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public User createUser(@Valid @RequestBody User user) {
-        return userStorage.createUser(user);
+    public UserDto createUser(@Valid @RequestBody NewUserRequest newUserRequest) {
+        return userService.createUser(newUserRequest);
     }
 
     @PutMapping
     @ResponseStatus(HttpStatus.OK)
-    public User updateUser(@Valid @RequestBody User newUser) {
-        return userStorage.updateUser(newUser);
+    public UserDto updateUser(@Valid @RequestBody UpdateUserRequest updateUserRequest) {
+        return userService.updateUser(updateUserRequest);
     }
 
     @DeleteMapping("/{userId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void removeUser(@PathVariable("userId") Long userId) {
-        userStorage.removeUser(userId);
+        userService.removeUser(userId);
     }
 
-    // Methods working with user service
     @GetMapping("/{userId}/friends")
     @ResponseStatus(HttpStatus.OK)
     public Collection<User> findAllFriendsUser(@PathVariable("userId") Long userId) {
@@ -74,6 +72,19 @@ public class UserController {
     public void addAsFriend(@PathVariable("userId") Long userId,
                             @PathVariable("friendId") Long friendId) {
         userService.addAsFriend(userId, friendId);
+    }
+
+    @PutMapping("/{userId}/friends/{friendId}/confirmation")
+    @ResponseStatus(HttpStatus.OK)
+    public void confirmationFriend(@PathVariable("userId") Long userId,
+                                   @PathVariable("friendId") Long friendId) {
+        userService.confirmationFriend(userId, friendId);
+    }
+
+    @GetMapping("/{userId}/friends-requests")
+    @ResponseStatus(HttpStatus.OK)
+    public Collection<Long> findFriendRequests(@PathVariable("userId") Long userId) {
+        return userService.findFriendRequests(userId);
     }
 
     @DeleteMapping("/{userId}/friends/{friendId}")

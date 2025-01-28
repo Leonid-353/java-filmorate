@@ -5,9 +5,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.dto.FilmDto;
+import ru.yandex.practicum.filmorate.dto.NewFilmRequest;
+import ru.yandex.practicum.filmorate.dto.UpdateFilmRequest;
 import ru.yandex.practicum.filmorate.service.film.FilmService;
-import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
 
 import java.util.Collection;
 
@@ -15,50 +16,46 @@ import java.util.Collection;
 @RestController
 @RequestMapping("/films")
 public class FilmController {
-    final FilmStorage filmStorage;
     final FilmService filmService;
 
     @Autowired
-    public FilmController(FilmStorage filmStorage, FilmService filmService) {
-        this.filmStorage = filmStorage;
+    public FilmController(FilmService filmService) {
         this.filmService = filmService;
     }
 
-    // Methods working with user storage
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
-    public Collection<Film> findAllFilms() {
-        return filmStorage.findAllFilms();
+    public Collection<FilmDto> findAllFilms() {
+        return filmService.findAllFilmsDto();
     }
 
     @GetMapping("/{filmId}")
     @ResponseStatus(HttpStatus.OK)
-    public Film findFilm(@PathVariable("filmId") Long filmId) {
-        return filmStorage.findFilm(filmId);
+    public FilmDto findFilm(@PathVariable("filmId") Long filmId) {
+        return filmService.findFilmDto(filmId);
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public Film createFilm(@Valid @RequestBody Film film) {
-        return filmStorage.createFilm(film);
+    public FilmDto createFilm(@Valid @RequestBody NewFilmRequest newFilmRequest) {
+        return filmService.createFilm(newFilmRequest);
     }
 
     @PutMapping
     @ResponseStatus(HttpStatus.OK)
-    public Film updateFilm(@Valid @RequestBody Film newFilm) {
-        return filmStorage.updateFilm(newFilm);
+    public FilmDto updateFilm(@Valid @RequestBody UpdateFilmRequest newFilmRequest) {
+        return filmService.updateFilm(newFilmRequest);
     }
 
     @DeleteMapping("/{filmId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void removeFilm(@PathVariable("filmId") Long filmId) {
-        filmStorage.removeFilm(filmId);
+        filmService.removeFilm(filmId);
     }
 
-    // Methods working with user service
     @GetMapping("/popular")
     @ResponseStatus(HttpStatus.OK)
-    public Collection<Film> findPopularFilms(@RequestParam(defaultValue = "10") Long count) {
+    public Collection<FilmDto> findPopularFilms(@RequestParam(defaultValue = "10") Long count) {
         return filmService.findPopularFilms(count);
     }
 

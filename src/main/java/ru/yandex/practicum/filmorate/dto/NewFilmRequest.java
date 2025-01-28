@@ -1,45 +1,28 @@
-package ru.yandex.practicum.filmorate.model;
+package ru.yandex.practicum.filmorate.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
-import lombok.AccessLevel;
 import lombok.Data;
-import lombok.experimental.FieldDefaults;
+import ru.yandex.practicum.filmorate.model.film.Genre;
+import ru.yandex.practicum.filmorate.model.film.Mpa;
 import ru.yandex.practicum.filmorate.validation.FilmMinimumReleaseDate;
 
 import java.time.LocalDate;
-import java.util.HashSet;
 import java.util.Set;
 
-/**
- * Film.
- */
 @Data
-@FieldDefaults(level = AccessLevel.PRIVATE)
-public class Film {
-    Long id;
+public class NewFilmRequest {
     @NotBlank(message = "Название не может быть пустым")
-    String name;
+    private String name;
     @Size(min = 1, max = 200, message = "Максимальная длина описания — 200 символов")
     @NotNull
-    String description;
+    private String description;
     @FilmMinimumReleaseDate
-    LocalDate releaseDate;
+    private LocalDate releaseDate;
     @Positive(message = "Продолжительность фильма должна быть положительным числом")
-    long duration;
-    Set<Long> likes = new HashSet<>();
-
-    public boolean addUserIdInLikes(Long userId) {
-        return likes.add(userId);
-    }
-
-    public boolean removeUserIdInLikes(Long userId) {
-        return likes.remove(userId);
-    }
-
-    public Long getLikesSize() {
-        return (long) likes.size();
-    }
+    private Integer duration;
+    private Set<Genre> genres;
+    private Mpa mpa;
 }

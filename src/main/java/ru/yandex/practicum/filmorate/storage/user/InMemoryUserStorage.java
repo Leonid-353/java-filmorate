@@ -1,18 +1,17 @@
 package ru.yandex.practicum.filmorate.storage.user;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exception.ConditionsNotMetException;
 import ru.yandex.practicum.filmorate.exception.DuplicatedDataException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
-import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.model.user.User;
 
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 @Slf4j
-@Component
 public class InMemoryUserStorage implements UserStorage {
 
     Map<Long, User> users = new HashMap<>();
@@ -23,12 +22,12 @@ public class InMemoryUserStorage implements UserStorage {
     }
 
     @Override
-    public User findUser(Long userId) {
+    public Optional<User> findUser(Long userId) {
         if (!users.containsKey(userId)) {
             log.warn("Запрос на получение. Пользователь с id: {} не найден в хранилище", userId);
             throw new NotFoundException(String.format("Пользователь с id: %d не найден в хранилище", userId));
         }
-        return users.get(userId);
+        return Optional.of(users.get(userId));
     }
 
     @Override

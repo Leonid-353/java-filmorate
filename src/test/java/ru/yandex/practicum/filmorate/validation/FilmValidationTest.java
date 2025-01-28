@@ -11,7 +11,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
-import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.film.Film;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -29,7 +29,7 @@ class FilmValidationTest {
         film.setName("Film test");
         film.setDescription("Description test");
         film.setReleaseDate(LocalDate.of(1997, 12, 31));
-        film.setDuration(100L);
+        film.setDuration(100);
     }
 
     @DisplayName("Валидация поля name")
@@ -105,7 +105,7 @@ class FilmValidationTest {
             "1, OK",
             "100, OK"
     })
-    void durationValidation(long duration, String expectedErrorMessage) {
+    void durationValidation(Integer duration, String expectedErrorMessage) {
         film.setDuration(duration);
         List<String> violations = validator.validate(film).stream()
                 .map(ConstraintViolation::getMessage)
