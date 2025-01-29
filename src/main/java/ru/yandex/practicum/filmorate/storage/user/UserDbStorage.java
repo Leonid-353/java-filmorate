@@ -6,7 +6,6 @@ import ru.yandex.practicum.filmorate.model.user.User;
 import ru.yandex.practicum.filmorate.storage.BaseDbStorage;
 import ru.yandex.practicum.filmorate.storage.user.mapper.UserRowMapper;
 
-import java.time.LocalDate;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -61,8 +60,8 @@ public class UserDbStorage extends BaseDbStorage<User> implements UserStorage {
                 user.getLogin(),
                 user.getName(),
                 user.getEmail(),
-                LocalDate.from(user.getBirthday())
-        );
+                user.getBirthday()
+        )[0];
         user.setId(id);
         return user;
     }
@@ -87,7 +86,7 @@ public class UserDbStorage extends BaseDbStorage<User> implements UserStorage {
     }
 
     public void addFriendRequest(Long userId, Long friendId) {
-        Long id = insert(
+        insert(
                 ADD_FRIEND_REQUEST,
                 userId,
                 friendId,

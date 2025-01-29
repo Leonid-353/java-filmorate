@@ -6,6 +6,7 @@ import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 import org.apache.commons.collections4.CollectionUtils;
+import ru.yandex.practicum.filmorate.model.film.Director;
 import ru.yandex.practicum.filmorate.model.film.Genre;
 import ru.yandex.practicum.filmorate.model.film.Mpa;
 import ru.yandex.practicum.filmorate.validation.FilmMinimumReleaseDate;
@@ -27,6 +28,7 @@ public class UpdateFilmRequest {
     @Positive(message = "Продолжительность фильма должна быть положительным числом")
     private Integer duration;
     private Set<Genre> genres;
+    private Set<Director> directors;
     private Mpa mpa;
 
     public boolean hasId() {

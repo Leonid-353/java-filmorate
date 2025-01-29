@@ -34,6 +34,7 @@ public class FilmMapper {
         dto.setLikes(film.getLikesSize());
         dto.setGenres(film.getGenres());
         dto.setMpa(film.getMpa());
+        dto.setDirectors(film.getDirectors());
 
         return dto;
     }
@@ -57,6 +58,9 @@ public class FilmMapper {
             }
             if (request.hasMpa()) {
                 film.setMpa(request.getMpa());
+            }
+            if (request.getDirectors() != null) {
+                film.setDirectors(request.getDirectors());
             }
         }
 
