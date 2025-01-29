@@ -93,19 +93,19 @@ CREATE TABLE IF NOT EXISTS likes
 
 -- Добавляем внешние ключи
 ALTER TABLE likes
-    ADD CONSTRAINT fk_likes_film_id FOREIGN KEY (film_id) REFERENCES films (id);
+    ADD CONSTRAINT IF NOT EXISTS fk_likes_film_id FOREIGN KEY (film_id) REFERENCES films (id);
 ALTER TABLE likes
-    ADD CONSTRAINT fk_likes_user_id FOREIGN KEY (user_id) REFERENCES users (id);
+    ADD CONSTRAINT IF NOT EXISTS fk_likes_user_id FOREIGN KEY (user_id) REFERENCES users (id);
 
 ALTER TABLE film_genre
-    ADD CONSTRAINT fk_film_genre_film_id FOREIGN KEY (film_id) REFERENCES films (id);
+    ADD CONSTRAINT IF NOT EXISTS fk_film_genre_film_id FOREIGN KEY (film_id) REFERENCES films (id);
 ALTER TABLE film_genre
-    ADD CONSTRAINT fk_film_genre_genre_id FOREIGN KEY (genre_id) REFERENCES genre (id);
+    ADD CONSTRAINT IF NOT EXISTS fk_film_genre_genre_id FOREIGN KEY (genre_id) REFERENCES genre (id);
 
 ALTER TABLE films
-    ADD CONSTRAINT fk_films_mpa_id FOREIGN KEY (mpa_id) REFERENCES mpa (id);
+    ADD CONSTRAINT IF NOT EXISTS fk_films_mpa_id FOREIGN KEY (mpa_id) REFERENCES mpa (id);
 
 ALTER TABLE friend_request
-    ADD CONSTRAINT fk_friend_request_user_id FOREIGN KEY (user_id) REFERENCES users (id);
+    ADD CONSTRAINT IF NOT EXISTS fk_friend_request_user_id FOREIGN KEY (user_id) REFERENCES users (id);
 ALTER TABLE friend_request
-    ADD CONSTRAINT fk_friend_request_friend_id FOREIGN KEY (friend_id) REFERENCES users (id);
+    ADD CONSTRAINT IF NOT EXISTS fk_friend_request_friend_id FOREIGN KEY (friend_id) REFERENCES users (id);
