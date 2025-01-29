@@ -20,7 +20,7 @@ public class FilmMapper {
         film.setLikes(new HashSet<>());
         film.setGenres(request.getGenres());
         film.setMpa(request.getMpa());
-
+        film.setDirectors(request.getDirectors());
         return film;
     }
 
@@ -35,7 +35,6 @@ public class FilmMapper {
         dto.setGenres(film.getGenres());
         dto.setMpa(film.getMpa());
         dto.setDirectors(film.getDirectors());
-
         return dto;
     }
 
