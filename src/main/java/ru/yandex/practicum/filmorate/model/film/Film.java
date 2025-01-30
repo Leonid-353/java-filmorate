@@ -31,6 +31,7 @@ public class Film {
     Integer duration;
     Set<Long> likes = new HashSet<>();
     Set<Genre> genres = new HashSet<>();
+    Set<Director> directors = new HashSet<>();
     Mpa mpa;
 
     public boolean addUserIdInLikes(Long userId) {

@@ -20,11 +20,11 @@ public class MpaDbStorage extends BaseDbStorage<Mpa> implements MpaStorage {
 
     @Override
     public Collection<Mpa> findAllMpa() {
-        return findMany(FIND_ALL_QUERY);
+        return findMany(FIND_ALL_QUERY, new MpaRowMapper());
     }
 
     @Override
     public Optional<Mpa> findMpaById(Long mpaId) {
-        return findOne(FIND_BY_ID_QUERY, mpaId);
+        return findOne(FIND_BY_ID_QUERY, new MpaRowMapper(), mpaId);
     }
 }

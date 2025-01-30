@@ -17,7 +17,6 @@ public class FilmRowMapper implements RowMapper<Film> {
         film.setName(resultSet.getString("name"));
         film.setDescription(resultSet.getString("description"));
         film.setDuration(resultSet.getInt("duration"));
-
         Date sqlDate = resultSet.getDate("release_date");
         film.setReleaseDate(sqlDate.toLocalDate());
 

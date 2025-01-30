@@ -7,10 +7,12 @@ import ru.yandex.practicum.filmorate.dto.NewFilmRequest;
 import ru.yandex.practicum.filmorate.dto.UpdateFilmRequest;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.mapper.FilmMapper;
+import ru.yandex.practicum.filmorate.model.film.Director;
 import ru.yandex.practicum.filmorate.model.film.Film;
 import ru.yandex.practicum.filmorate.model.film.Genre;
 import ru.yandex.practicum.filmorate.model.film.Mpa;
 import ru.yandex.practicum.filmorate.model.user.User;
+import ru.yandex.practicum.filmorate.storage.director.DirectorDbStorage;
 import ru.yandex.practicum.filmorate.storage.film.FilmDbStorage;
 import ru.yandex.practicum.filmorate.storage.genre.GenreDbStorage;
 import ru.yandex.practicum.filmorate.storage.mpa.MpaDbStorage;
@@ -26,16 +28,19 @@ public class FilmService {
     private final UserDbStorage userDbStorage;
     private final GenreDbStorage genreDbStorage;
     private final MpaDbStorage mpaDbStorage;
+    private final DirectorDbStorage directorDbStorage;
 
     @Autowired
     public FilmService(FilmDbStorage filmDbStorage,
                        UserDbStorage userDbStorage,
                        GenreDbStorage genreDbStorage,
-                       MpaDbStorage mpaDbStorage) {
+                       MpaDbStorage mpaDbStorage,
+                       DirectorDbStorage directorDbStorage) {
         this.filmDbStorage = filmDbStorage;
         this.userDbStorage = userDbStorage;
         this.genreDbStorage = genreDbStorage;
         this.mpaDbStorage = mpaDbStorage;
+        this.directorDbStorage = directorDbStorage;
     }
 
     // Получение всех фильмов
@@ -72,6 +77,7 @@ public class FilmService {
         Mpa filmMpa = updateFilm.getMpa();
         filmMpa.setName(filmDbStorage.findMpaName(filmMpa.getId()).orElseThrow());
         updateFilm.getGenres().forEach(genre -> genre.setName(filmDbStorage.findGenreName(genre.getId()).orElseThrow()));
+        updateFilm.getDirectors().forEach(director -> director.setName(directorDbStorage.getDirector(director.getId()).getName()));
         filmDbStorage.updateFilm(updateFilm);
         return FilmMapper.mapToFilmDto(updateFilm);
     }
@@ -130,5 +136,32 @@ public class FilmService {
     // Получить возрастной рейтинг mpa по id
     public Mpa findMpaById(Long mpaId) {
         return mpaDbStorage.findMpaById(mpaId).orElseThrow();
+    }
+
+    public Director getDirectorById(Long directorId) {
+        return directorDbStorage.getDirector(directorId);
+    }
+
+    public Collection<Director> getAllDirectors() {
+        return directorDbStorage.getDirectors();
+    }
+
+    public Director addDirector(Director director) {
+        return directorDbStorage.addDirector(director);
+    }
+
+    public Director updateDirector(Director director) {
+        return directorDbStorage.updateDirector(director);
+    }
+
+    public void deleteDirector(Long directorId) {
+        directorDbStorage.deleteDirector(directorId);
+    }
+
+    public Collection<FilmDto> getFilmsByDirectorId(Long directorId, String orderBy) {
+        return filmDbStorage.findFilmsByDirector(directorId, orderBy)
+                .stream()
+                .map(FilmMapper::mapToFilmDto)
+                .toList();
     }
 }

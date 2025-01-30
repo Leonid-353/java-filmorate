@@ -6,7 +6,6 @@ import ru.yandex.practicum.filmorate.model.user.User;
 import ru.yandex.practicum.filmorate.storage.BaseDbStorage;
 import ru.yandex.practicum.filmorate.storage.user.mapper.UserRowMapper;
 
-import java.time.LocalDate;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -38,14 +37,14 @@ public class UserDbStorage extends BaseDbStorage<User> implements UserStorage {
 
     @Override
     public Collection<User> findAllUsers() {
-        List<User> users = findMany(FIND_ALL_QUERY);
+        List<User> users = findMany(FIND_ALL_QUERY, new UserRowMapper());
         users.forEach(user -> user.setFriends(new HashSet<>(findManyId(FIND_ALL_FRIEND, user.getId()))));
         return users;
     }
 
     @Override
     public Optional<User> findUser(Long userId) {
-        return findOne(FIND_BY_ID_QUERY, userId)
+        return findOne(FIND_BY_ID_QUERY, new UserRowMapper(), userId)
                 .map(user -> {
                     List<Long> ids = findManyId(FIND_ALL_FRIEND, userId);
                     System.out.println(ids);
@@ -61,8 +60,8 @@ public class UserDbStorage extends BaseDbStorage<User> implements UserStorage {
                 user.getLogin(),
                 user.getName(),
                 user.getEmail(),
-                LocalDate.from(user.getBirthday())
-        );
+                user.getBirthday()
+        )[0];
         user.setId(id);
         return user;
     }
@@ -87,7 +86,7 @@ public class UserDbStorage extends BaseDbStorage<User> implements UserStorage {
     }
 
     public void addFriendRequest(Long userId, Long friendId) {
-        Long id = insert(
+        insert(
                 ADD_FRIEND_REQUEST,
                 userId,
                 friendId,

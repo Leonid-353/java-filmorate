@@ -41,6 +41,12 @@ public class FilmController {
         return filmService.createFilm(newFilmRequest);
     }
 
+    @GetMapping("/director/{directorId}")
+    @ResponseStatus(HttpStatus.OK)
+    public Collection<FilmDto> getFilmsByDirector(@PathVariable Long directorId, @RequestParam(required = false, defaultValue = "") String sortBy) {
+        return filmService.getFilmsByDirectorId(directorId, sortBy);
+    }
+
     @PutMapping
     @ResponseStatus(HttpStatus.OK)
     public FilmDto updateFilm(@Valid @RequestBody UpdateFilmRequest newFilmRequest) {
