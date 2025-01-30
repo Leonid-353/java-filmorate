@@ -43,6 +43,9 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
             "WHERE id = ?)";
     private static final String FIND_BY_ID_GENRE = "SELECT name FROM genre WHERE id = ?";
     private static final String FIND_BY_ID_MPA = "SELECT name FROM mpa WHERE id = ?";
+    private static final String FIND_FILM_ID_IN_FILM_GENRE = "SELECT film_id FROM film_genre WHERE film_id = ?";
+    private static final String FIND_FILM_ID_IN_FILM_DIRECTOR = "SELECT film_id FROM film_directors WHERE film_id = ?";
+    private static final String FIND_FILM_ID_IN_LIKES = "SELECT film_id FROM likes WHERE film_id = ?";
     private static final String INSERT_QUERY = "INSERT INTO films (name, description, release_date, duration, mpa_id)" +
             "VALUES (?, ?, ?, ?, ?)";
     private static final String INSERT_FILM_GENRE_QUERY = "INSERT INTO film_genre (film_Id, genre_Id)" +
@@ -190,10 +193,16 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
 
     @Override
     public void removeFilm(Long filmId) {
+        if (findOneId(FIND_FILM_ID_IN_FILM_GENRE, filmId).isPresent()) {
+            delete(DELETE_FILM_GENRE_QUERY, filmId);
+        }
+        if (findOneId(FIND_FILM_ID_IN_FILM_DIRECTOR, filmId).isPresent()) {
+            delete(DELETE_FILM_DIRECTOR_QUERY, filmId);
+        }
+        if (findOneId(FIND_FILM_ID_IN_LIKES, filmId).isPresent()) {
+            delete(DELETE_LIKES_BY_FILM_ID_QUERY, filmId);
+        }
         delete(DELETE_QUERY, filmId);
-        delete(DELETE_FILM_GENRE_QUERY, filmId);
-        delete(DELETE_FILM_DIRECTOR_QUERY, filmId);
-        delete(DELETE_LIKES_BY_FILM_ID_QUERY, filmId);
     }
 
     public void likeIt(Long filmId, Long userId) {
