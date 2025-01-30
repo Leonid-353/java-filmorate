@@ -7,12 +7,6 @@ import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import ru.yandex.practicum.filmorate.exception.InternalServerException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
-import ru.yandex.practicum.filmorate.model.film.Director;
-import ru.yandex.practicum.filmorate.model.film.Genre;
-import ru.yandex.practicum.filmorate.model.film.Mpa;
-import ru.yandex.practicum.filmorate.storage.director.mapper.DirectorRowMapper;
-import ru.yandex.practicum.filmorate.storage.genre.mapper.GenreRowMapper;
-import ru.yandex.practicum.filmorate.storage.mpa.mapper.MpaRowMapper;
 
 import java.sql.PreparedStatement;
 import java.sql.Statement;
@@ -26,9 +20,9 @@ public class BaseDbStorage<T> {
     protected final RowMapper<T> mapper;
     private final Class<T> entityType;
 
-    protected Optional<T> findOne(String query, Object... params) {
+    protected <R> Optional<R> findOne(String query, RowMapper<R> mapper, Object... params) {
         try {
-            T result = jdbc.queryForObject(query, mapper, params);
+            R result = jdbc.queryForObject(query, mapper, params);
             return Optional.ofNullable(result);
         } catch (EmptyResultDataAccessException ignored) {
             return Optional.empty();
@@ -53,16 +47,7 @@ public class BaseDbStorage<T> {
         }
     }
 
-    protected Optional<Mpa> findOneMpa(String query, Object... params) {
-        try {
-            Mpa result = jdbc.queryForObject(query, new MpaRowMapper(), params);
-            return Optional.ofNullable(result);
-        } catch (EmptyResultDataAccessException ignored) {
-            return Optional.empty();
-        }
-    }
-
-    protected List<T> findMany(String query, Object... params) {
+    protected <R> List<R> findMany(String query, RowMapper<R> mapper, Object... params) {
         try {
             return jdbc.query(query, mapper, params);
         } catch (Exception e) {
@@ -72,18 +57,6 @@ public class BaseDbStorage<T> {
 
     protected List<Long> findManyId(String query, Object... params) {
         return jdbc.queryForList(query, Long.class, params);
-    }
-
-    protected List<Genre> findManyGenre(String query, Object... params) {
-        return jdbc.query(query, new GenreRowMapper(), params);
-    }
-
-    protected List<Director> findManyDirectors(String query, Object... params) {
-        return jdbc.query(query, new DirectorRowMapper(), params);
-    }
-
-    protected List<String> findManyString(String query, Object... params) {
-        return jdbc.queryForList(query, String.class, params);
     }
 
     protected long[] insert(String query, Object... params) {

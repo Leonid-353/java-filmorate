@@ -20,11 +20,11 @@ public class GenreDbStorage extends BaseDbStorage<Genre> implements GenreStorage
 
     @Override
     public Collection<Genre> findAllGenres() {
-        return findMany(FIND_ALL_QUERY);
+        return findMany(FIND_ALL_QUERY, new GenreRowMapper());
     }
 
     @Override
     public Optional<Genre> findGenreById(Long genreId) {
-        return findOne(FIND_BY_ID_QUERY, genreId);
+        return findOne(FIND_BY_ID_QUERY, new GenreRowMapper(), genreId);
     }
 }

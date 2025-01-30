@@ -37,14 +37,14 @@ public class UserDbStorage extends BaseDbStorage<User> implements UserStorage {
 
     @Override
     public Collection<User> findAllUsers() {
-        List<User> users = findMany(FIND_ALL_QUERY);
+        List<User> users = findMany(FIND_ALL_QUERY, new UserRowMapper());
         users.forEach(user -> user.setFriends(new HashSet<>(findManyId(FIND_ALL_FRIEND, user.getId()))));
         return users;
     }
 
     @Override
     public Optional<User> findUser(Long userId) {
-        return findOne(FIND_BY_ID_QUERY, userId)
+        return findOne(FIND_BY_ID_QUERY, new UserRowMapper(), userId)
                 .map(user -> {
                     List<Long> ids = findManyId(FIND_ALL_FRIEND, userId);
                     System.out.println(ids);

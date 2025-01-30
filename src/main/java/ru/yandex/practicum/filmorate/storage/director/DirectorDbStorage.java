@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public class DirectorDbStorage extends BaseDbStorage<Director> {
+public class DirectorDbStorage extends BaseDbStorage<Director> implements DirectorStorage {
     private static final String FIND_ALL_QUERY = "SELECT * FROM director";
     private static final String FIND_BY_ID_QUERY = "SELECT * FROM director WHERE id = ?";
     private static final String INSERT_QUERY = "INSERT INTO director (name) VALUES (?)";
@@ -26,11 +26,11 @@ public class DirectorDbStorage extends BaseDbStorage<Director> {
     }
 
     public List<Director> getDirectors() {
-        return findMany(FIND_ALL_QUERY);
+        return findMany(FIND_ALL_QUERY, new DirectorRowMapper());
     }
 
     public Director getDirector(Long id) {
-        Optional<Director> director = findOne(FIND_BY_ID_QUERY, id);
+        Optional<Director> director = findOne(FIND_BY_ID_QUERY, new DirectorRowMapper(), id);
         if (director.isPresent()) {
             return director.get();
         } else {
