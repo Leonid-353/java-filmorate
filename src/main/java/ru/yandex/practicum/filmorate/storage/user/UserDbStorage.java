@@ -117,7 +117,7 @@ public class UserDbStorage extends BaseDbStorage<User> implements UserStorage {
     public Collection<User> findUsersByFilmsLike(Collection<Film> films) {
 
         Set<Integer> filmIds = films.stream()
-                .map(film ->film.getId().intValue())
+                .map(film -> film.getId().intValue())
                 .collect(Collectors.toSet());
 
         String inClause = filmIds.stream()

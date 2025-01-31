@@ -14,9 +14,7 @@ import ru.yandex.practicum.filmorate.model.film.Film;
 import ru.yandex.practicum.filmorate.model.user.User;
 import ru.yandex.practicum.filmorate.storage.film.FilmDbStorage;
 import ru.yandex.practicum.filmorate.storage.user.UserDbStorage;
-
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 public class UserService {
