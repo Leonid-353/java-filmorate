@@ -2,27 +2,29 @@ package ru.yandex.practicum.filmorate.service.user;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import ru.yandex.practicum.filmorate.dto.FilmDto;
 import ru.yandex.practicum.filmorate.dto.NewUserRequest;
 import ru.yandex.practicum.filmorate.dto.UpdateUserRequest;
 import ru.yandex.practicum.filmorate.dto.UserDto;
 import ru.yandex.practicum.filmorate.exception.DuplicatedDataException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
+import ru.yandex.practicum.filmorate.mapper.FilmMapper;
 import ru.yandex.practicum.filmorate.mapper.UserMapper;
+import ru.yandex.practicum.filmorate.model.film.Film;
 import ru.yandex.practicum.filmorate.model.user.User;
+import ru.yandex.practicum.filmorate.storage.film.FilmDbStorage;
 import ru.yandex.practicum.filmorate.storage.user.UserDbStorage;
-
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 @Service
 public class UserService {
     private final UserDbStorage userDbStorage;
+    private final FilmDbStorage filmDbStorage;
 
     @Autowired
-    public UserService(UserDbStorage userDbStorage) {
+    public UserService(UserDbStorage userDbStorage, FilmDbStorage filmDbStorage) {
         this.userDbStorage = userDbStorage;
+        this.filmDbStorage = filmDbStorage;
     }
 
     public Collection<UserDto> findAllUsersDto() {
@@ -120,5 +122,48 @@ public class UserService {
             friend.removeFriendId(user.getId());
             userDbStorage.unfriend(userId, friendId);
         }
+    }
+
+    public Collection<FilmDto> findRecommendations(Long userId) {
+        userDbStorage.findUser(userId).orElseThrow();
+        Collection<Film> filmsUserLike = filmDbStorage.findFilmsLike(userId);
+        Collection<User> similarUsers = userDbStorage.findUsersByFilmsLike(filmsUserLike);
+
+
+        //similarUsersWeight - мапа для хранения весов пользователей;
+        // Long - вес пользователя по кол-ву совпавших фильмов, чем больше совпадений тем больше вес такого пользователя
+        Map<User, Long> similarUsersWeight = new HashMap<>();
+        //similarUsersFilm мапа для хранения фильмов пользователей которые они лайкнули;
+        Map<User, Collection<Film>> similarUsersFilm = new HashMap<>();
+
+        //Находим вес каждого пользователя + попутно заполняем фильмы которые лайкнул пользователь
+        for (User user : similarUsers) {
+            Collection<Film> filmsSimilarUserLike = filmDbStorage.findFilmsLike(user.getId());
+            similarUsersFilm.put(user, filmsSimilarUserLike);
+            Long count = filmsSimilarUserLike.stream()
+                    .filter(filmsUserLike::contains)
+                    .count();
+            similarUsersWeight.put(user, count);
+        }
+
+        // movieScore - мапа с фильмами которые лайкнули похожие пользователи
+        Map<Film, Long> movieScore = new HashMap<>();
+
+
+        for (Map.Entry<User, Long> entry : similarUsersWeight.entrySet()) {
+            User user = entry.getKey();
+            Long weight = entry.getValue();  //вес пользователя
+            for (Film film : similarUsersFilm.get(user)) {
+                if (!filmsUserLike.contains(film)) {   // Исключаем уже лайкнутые фильмы
+                    movieScore.put(film, movieScore.getOrDefault(film, 0L) + weight);
+                }
+            }
+        }
+
+        return movieScore.entrySet().stream()
+                .sorted((entry1, entry2) -> entry2.getValue().compareTo(entry1.getValue()))
+                .map(Map.Entry::getKey)
+                .map(FilmMapper::mapToFilmDto)
+                .toList();
     }
 }

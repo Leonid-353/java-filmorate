@@ -62,6 +62,7 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
     private static final String DELETE_FILM_DIRECTOR_QUERY = "DELETE FROM film_directors WHERE film_id = ?";
     private static final String DELETE_LIKES_BY_FILM_ID_QUERY = "DELETE FROM likes WHERE film_id = ?";
     private static final String DELETE_LIKES_QUERY = "DELETE FROM likes WHERE film_id = ? AND user_id = ?";
+    private static final String FIND_LIKES_FILMS_FOR_USER = "SELECT * FROM films JOIN likes ON films.id = likes.film_id  WHERE likes.user_id = ?";
     private static final String ORDER_BY_LIKES = "likes";
     private static final String ORDER_BY_RELEASE = "year";
 
@@ -216,4 +217,9 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
     public void removeLikes(Long filmId, Long userId) {
         delete(DELETE_LIKES_QUERY, filmId, userId);
     }
+
+    public Collection<Film> findFilmsLike(Long userId) {
+        return findMany(FIND_LIKES_FILMS_FOR_USER, new FilmRowMapper(), userId);
+    }
+
 }
