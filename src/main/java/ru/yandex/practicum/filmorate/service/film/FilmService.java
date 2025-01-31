@@ -61,7 +61,9 @@ public class FilmService {
     public FilmDto createFilm(NewFilmRequest newFilmRequest) {
         Film film = FilmMapper.mapToFilm(newFilmRequest);
         Mpa filmMpa = film.getMpa();
-        filmMpa.setName(filmDbStorage.findMpaName(filmMpa.getId()).orElseThrow());
+        if (filmMpa != null) {
+            filmMpa.setName(filmDbStorage.findMpaName(filmMpa.getId()).orElseThrow());
+        }
         if (film.getGenres() != null) {
             film.getGenres().forEach(genre -> genre.setName(filmDbStorage.findGenreName(genre.getId()).orElseThrow()));
         }
