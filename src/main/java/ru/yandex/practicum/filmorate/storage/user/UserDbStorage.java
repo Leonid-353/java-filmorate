@@ -16,20 +16,29 @@ public class UserDbStorage extends BaseDbStorage<User> implements UserStorage {
     private static final String FIND_ALL_QUERY = "SELECT * FROM users";
     private static final String FIND_ALL_FRIEND = "SELECT friend_id FROM friend_request WHERE user_id = ?";
     private static final String FIND_BY_ID_QUERY = "SELECT * FROM users WHERE id = ?";
+    private static final String FIND_USER_ID_FRIEND_REQUEST = "SELECT user_id FROM friend_request " +
+            "WHERE friend_id = ? AND is_confirmed = false";
+    private static final String FIND_USER_ID_LIKES = "SELECT user_id FROM likes " +
+            "WHERE user_id = ?";
+    private static final String FIND_USER_ID_FRIEND_REQUEST_BY_USER_ID_ONLY = "SELECT user_id FROM friend_request " +
+            "WHERE user_id = ?";
+    private static final String FIND_FRIEND_ID_FRIEND_REQUEST = "SELECT user_id FROM friend_request " +
+            "WHERE friend_id = ?";
+
     private static final String INSERT_QUERY = "INSERT INTO users(login, name, email, birthday)" +
             "VALUES (?, ?, ?, ?)";
     private static final String UPDATE_USER_QUERY = "UPDATE users SET email = ?, login = ?, name = ?, birthday = ? " +
             "WHERE id = ?";
     private static final String DELETE_QUERY = "DELETE FROM users WHERE id = ?";
     private static final String DELETE_FRIENDS = "DELETE FROM friend_request WHERE user_id = ?";
+    private static final String DELETE_FRIENDS_BY_FRIEND_ID = "DELETE FROM friend_request WHERE friend_id = ?";
     private static final String DELETE_BY_ID_FRIEND = "DELETE FROM friend_request " +
             "WHERE user_id = ? AND friend_id = ?";
+    private static final String DELETE_Like_QUERY = "DELETE FROM likes WHERE user_id = ?";
     private static final String ADD_FRIEND_REQUEST = "INSERT INTO friend_request(user_id, friend_id, is_confirmed)" +
             "VALUES (?, ?, ?)";
     private static final String CONFIRMATION_FRIEND_REQUEST = "UPDATE friend_request SET is_confirmed = true " +
             "WHERE user_id = ? AND friend_id = ?";
-    private static final String FIND_BY_ID_FRIEND_REQUEST = "SELECT user_id FROM friend_request " +
-            "WHERE friend_id = ? AND is_confirmed = false";
 
     public UserDbStorage(JdbcTemplate jdbc, UserRowMapper mapper) {
         super(jdbc, mapper, User.class);
@@ -81,7 +90,15 @@ public class UserDbStorage extends BaseDbStorage<User> implements UserStorage {
 
     @Override
     public void removeUser(Long userId) {
-        delete(DELETE_FRIENDS, userId);
+        if (findOneId(FIND_USER_ID_LIKES, userId).isPresent()) {
+            delete(DELETE_Like_QUERY, userId);
+        }
+        if (findOneId(FIND_USER_ID_FRIEND_REQUEST_BY_USER_ID_ONLY, userId).isPresent()) {
+            delete(DELETE_FRIENDS, userId);
+        }
+        if (findOneId(FIND_FRIEND_ID_FRIEND_REQUEST, userId).isPresent()) {
+            delete(DELETE_FRIENDS_BY_FRIEND_ID, userId);
+        }
         delete(DELETE_QUERY, userId);
     }
 
@@ -103,7 +120,7 @@ public class UserDbStorage extends BaseDbStorage<User> implements UserStorage {
     }
 
     public Collection<Long> findFriendRequests(Long userId) {
-        return findManyId(FIND_BY_ID_FRIEND_REQUEST, userId);
+        return findManyId(FIND_USER_ID_FRIEND_REQUEST, userId);
     }
 
     public void unfriend(Long userId, Long friendId) {
