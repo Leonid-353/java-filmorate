@@ -159,7 +159,14 @@ public class FilmService {
     }
 
     public Collection<FilmDto> getFilmsByDirectorId(Long directorId, String orderBy) {
-        return filmDbStorage.findFilmsByDirector(directorId, orderBy)
+        return filmDbStorage.findFilmsByDirectorId(directorId, orderBy)
+                .stream()
+                .map(FilmMapper::mapToFilmDto)
+                .toList();
+    }
+
+    public Collection<FilmDto> searchFilmsByTitleOrDirectorName(String query, String searchParam) {
+        return filmDbStorage.findFilmsByTitleOrDirectorName(query, searchParam)
                 .stream()
                 .map(FilmMapper::mapToFilmDto)
                 .toList();

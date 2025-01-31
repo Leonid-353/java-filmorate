@@ -47,6 +47,11 @@ public class FilmController {
         return filmService.getFilmsByDirectorId(directorId, sortBy);
     }
 
+    @GetMapping("/search")
+    public Collection<FilmDto> findFilmsByTitleOrDirectorName(@RequestParam String query, @RequestParam String by) {
+        return filmService.searchFilmsByTitleOrDirectorName(query, by);
+    }
+
     @PutMapping
     @ResponseStatus(HttpStatus.OK)
     public FilmDto updateFilm(@Valid @RequestBody UpdateFilmRequest newFilmRequest) {
