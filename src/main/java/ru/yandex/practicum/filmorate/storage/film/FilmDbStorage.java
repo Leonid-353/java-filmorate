@@ -219,7 +219,7 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
     }
 
     public Collection<Film> findFilmsLike(Long userId) {
-        return findMany(FIND_LIKES_FILMS_FOR_USER, userId);
+        return findMany(FIND_LIKES_FILMS_FOR_USER, new FilmRowMapper(), userId);
     }
 
 }
