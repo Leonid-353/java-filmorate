@@ -44,7 +44,7 @@ public class UserDbStorage extends BaseDbStorage<User> implements UserStorage {
             "WHERE user_id = ? AND friend_id = ?";
     private static final String FIND_BY_ID_FRIEND_REQUEST = "SELECT user_id FROM friend_request " +
             "WHERE friend_id = ? AND is_confirmed = false";
-    private static final String FIND_USER_BY_FILMS_LIKE = "SELECT * FROM users LEFT JOIN likes ON users.id = likes.user_id where likes.film_id IN ";
+    private static final String FIND_USER_BY_FILMS_LIKE = "SELECT * FROM users LEFT JOIN likes ON users.id = likes.user_id where likes.film_id IN (%s)";
 
     public UserDbStorage(JdbcTemplate jdbc, UserRowMapper mapper) {
         super(jdbc, mapper, User.class);
@@ -143,7 +143,7 @@ public class UserDbStorage extends BaseDbStorage<User> implements UserStorage {
                 .map(id -> "?")
                 .collect(Collectors.joining(", "));
 
-        String query = FIND_USER_BY_FILMS_LIKE + "(" + inClause + ")";
+        String query = String.format(FIND_USER_BY_FILMS_LIKE, inClause);
 
         return findMany(query, new UserRowMapper(), filmIds.toArray());
 
