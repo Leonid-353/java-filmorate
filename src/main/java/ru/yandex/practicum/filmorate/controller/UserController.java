@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import ru.yandex.practicum.filmorate.dto.FilmDto;
 import ru.yandex.practicum.filmorate.dto.NewUserRequest;
 import ru.yandex.practicum.filmorate.dto.UpdateUserRequest;
 import ru.yandex.practicum.filmorate.dto.UserDto;
@@ -93,4 +94,11 @@ public class UserController {
                          @PathVariable("friendId") Long friendId) {
         userService.unfriend(userId, friendId);
     }
+
+    @GetMapping("/{userId}/recommendations")
+    @ResponseStatus(HttpStatus.OK)
+    public Collection<FilmDto> findRecommendations(@PathVariable("userId") Long userId) {
+        return userService.findRecommendations(userId);
+    }
+
 }
