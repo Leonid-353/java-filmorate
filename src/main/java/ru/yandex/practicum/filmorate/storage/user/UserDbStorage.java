@@ -1,6 +1,7 @@
 package ru.yandex.practicum.filmorate.storage.user;
 
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.model.film.Film;
 import ru.yandex.practicum.filmorate.model.user.User;
@@ -126,7 +127,7 @@ public class UserDbStorage extends BaseDbStorage<User> implements UserStorage {
 
         String query = FIND_USER_BY_FILMS_LIKE + "(" + inClause + ")";
 
-        return findMany(query, filmIds.toArray());
+        return findMany(query, new UserRowMapper(), filmIds.toArray());
 
     }
 }
