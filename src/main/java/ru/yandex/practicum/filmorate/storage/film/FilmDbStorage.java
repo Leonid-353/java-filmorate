@@ -1,7 +1,10 @@
 package ru.yandex.practicum.filmorate.storage.film;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
+import ru.yandex.practicum.filmorate.constants.FeedEventType;
+import ru.yandex.practicum.filmorate.constants.FeedOperations;
 import ru.yandex.practicum.filmorate.exception.BadRequestException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.film.Director;
@@ -9,13 +12,11 @@ import ru.yandex.practicum.filmorate.model.film.Film;
 import ru.yandex.practicum.filmorate.model.film.Genre;
 import ru.yandex.practicum.filmorate.storage.BaseDbStorage;
 import ru.yandex.practicum.filmorate.storage.director.mapper.DirectorRowMapper;
+import ru.yandex.practicum.filmorate.storage.feed.FeedDbStorage;
 import ru.yandex.practicum.filmorate.storage.film.mapper.FilmRowMapper;
 import ru.yandex.practicum.filmorate.storage.genre.mapper.GenreRowMapper;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Repository
 public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
@@ -60,7 +61,6 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
             "ORDER BY COUNT(l.FILM_ID) DESC";
     private static final String SEARCH_PARAM_DIRECTOR_NAME = " D.NAME like ?";
     private static final String SEARCH_PARAM_FILM_NAME = " F.NAME like ?";
-    private static final String SEARCH_BY_BOTH_PARAMS = String.format("%s OR %s", SEARCH_PARAM_FILM_NAME, SEARCH_PARAM_DIRECTOR_NAME);
     private static final String INSERT_FILM_GENRE_QUERY = "INSERT INTO film_genre (film_Id, genre_Id)" +
             "VALUES (?, ?)";
     private static final String INSERT_FILM_DIRECTOR_QUERY = "INSERT INTO film_directors (film_Id, director_Id)" +
@@ -86,8 +86,12 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
     private static final String TITLE_DIRECTOR = "title,director";
     private static final String DIRECTOR_TITLE = "director,title";
 
-    public FilmDbStorage(JdbcTemplate jdbc, FilmRowMapper mapper) {
+    FeedDbStorage feedDbStorage;
+
+    @Autowired
+    public FilmDbStorage(JdbcTemplate jdbc, FilmRowMapper mapper, FeedDbStorage feedDbStorage) {
         super(jdbc, mapper, Film.class);
+        this.feedDbStorage = feedDbStorage;
     }
 
     @Override
@@ -109,30 +113,22 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
     }
 
     public Collection<Film> findFilmsByTitleOrDirectorName(String query, String searchParam) {
+        String[] searchParams = searchParam.split(",");
         String preparedSearchValue = "%" + query + "%";
-        switch (searchParam) {
-            case TITLE: {
-                String searchQuery = String.format(SEARCH_FILMS_BY_TITLE_OR_DIRECTOR_NAME, SEARCH_PARAM_FILM_NAME);
-                System.out.println("searchQuery: " + searchQuery);
-                List<Film> films = findMany(searchQuery, new FilmRowMapper(), preparedSearchValue);
-                return initializeDataFromLinkedTables(films);
-            }
-            case DIRECTOR: {
-                String searchQuery = String.format(SEARCH_FILMS_BY_TITLE_OR_DIRECTOR_NAME, SEARCH_PARAM_DIRECTOR_NAME);
-                List<Film> films = findMany(searchQuery, new FilmRowMapper(), preparedSearchValue);
-                return initializeDataFromLinkedTables(films);
-            }
-            case TITLE_DIRECTOR:
-            case DIRECTOR_TITLE: {
-                String searchCondition = String.format(SEARCH_BY_BOTH_PARAMS, SEARCH_FILMS_BY_TITLE_OR_DIRECTOR_NAME, SEARCH_FILMS_BY_TITLE_OR_DIRECTOR_NAME);
-                String searchQuery = String.format(SEARCH_FILMS_BY_TITLE_OR_DIRECTOR_NAME, searchCondition);
-                List<Film> films = findMany(searchQuery, new FilmRowMapper(), preparedSearchValue, preparedSearchValue);
-                return initializeDataFromLinkedTables(films);
-            }
-            default: {
-                throw new BadRequestException("Invalid search parameter: " + searchParam);
-            }
+        Object[] searchValues = new String[searchParams.length];
+        Arrays.fill(searchValues, preparedSearchValue);
+        if (searchParams.length == 0 || Arrays.stream(searchParams)
+                .anyMatch(it -> !it.equals(TITLE) && !it.equals(DIRECTOR))) {
+            throw new BadRequestException("Invalid search parameter: " + searchParam);
+        } else {
+            searchParam = String.join(" OR ", searchParams)
+                    .replace(TITLE, SEARCH_PARAM_FILM_NAME)
+                    .replace(DIRECTOR, SEARCH_PARAM_DIRECTOR_NAME);
         }
+        String searchQuery = String.format(SEARCH_FILMS_BY_TITLE_OR_DIRECTOR_NAME, searchParam);
+        List<Film> films;
+        films = findMany(searchQuery, new FilmRowMapper(), searchValues);
+        return initializeDataFromLinkedTables(films);
     }
 
     private Collection<Film> initializeDataFromLinkedTables(List<Film> films) {
@@ -250,10 +246,12 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
                 filmId,
                 userId
         );
+        feedDbStorage.addEvent(userId, FeedEventType.LIKE, FeedOperations.ADD, filmId);
     }
 
     public void removeLikes(Long filmId, Long userId) {
         update(DELETE_LIKES_QUERY, filmId, userId);
+        feedDbStorage.addEvent(userId, FeedEventType.LIKE, FeedOperations.REMOVE, filmId);
     }
 
     public Collection<Film> findFilmsLike(Long userId) {
