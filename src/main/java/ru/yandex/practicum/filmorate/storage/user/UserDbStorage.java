@@ -1,16 +1,16 @@
 package ru.yandex.practicum.filmorate.storage.user;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
+import ru.yandex.practicum.filmorate.constants.FeedEventType;
+import ru.yandex.practicum.filmorate.constants.FeedOperations;
 import ru.yandex.practicum.filmorate.model.film.Film;
 import ru.yandex.practicum.filmorate.model.user.User;
 import ru.yandex.practicum.filmorate.storage.BaseDbStorage;
+import ru.yandex.practicum.filmorate.storage.feed.FeedDbStorage;
 import ru.yandex.practicum.filmorate.storage.user.mapper.UserRowMapper;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -27,7 +27,6 @@ public class UserDbStorage extends BaseDbStorage<User> implements UserStorage {
             "WHERE user_id = ?";
     private static final String FIND_FRIEND_ID_FRIEND_REQUEST = "SELECT user_id FROM friend_request " +
             "WHERE friend_id = ?";
-
     private static final String INSERT_QUERY = "INSERT INTO users(login, name, email, birthday)" +
             "VALUES (?, ?, ?, ?)";
     private static final String UPDATE_USER_QUERY = "UPDATE users SET email = ?, login = ?, name = ?, birthday = ? " +
@@ -45,9 +44,14 @@ public class UserDbStorage extends BaseDbStorage<User> implements UserStorage {
     private static final String FIND_BY_ID_FRIEND_REQUEST = "SELECT user_id FROM friend_request " +
             "WHERE friend_id = ? AND is_confirmed = false";
     private static final String FIND_USER_BY_FILMS_LIKE = "SELECT * FROM users LEFT JOIN likes ON users.id = likes.user_id where likes.film_id IN (%s)";
+    private final String ADD_EVENT = "INSERT INTO user_feed(user_id, event_type, operation, entity_id) VALUES (?,?,?,?)";
+    private final String GET_EVENTS = "SELECT * FROM user_feed WHERE user_id = ?";
+    FeedDbStorage feedDbStorage;
 
-    public UserDbStorage(JdbcTemplate jdbc, UserRowMapper mapper) {
+    @Autowired
+    public UserDbStorage(JdbcTemplate jdbc, UserRowMapper mapper, FeedDbStorage feedDbStorage) {
         super(jdbc, mapper, User.class);
+        this.feedDbStorage = feedDbStorage;
     }
 
     @Override
@@ -100,6 +104,7 @@ public class UserDbStorage extends BaseDbStorage<User> implements UserStorage {
         update(DELETE_FRIENDS, userId);
         update(DELETE_FRIENDS_BY_FRIEND_ID, userId);
         update(DELETE_QUERY, userId);
+        feedDbStorage.deleteEvents(userId);
     }
 
     public void addFriendRequest(Long userId, Long friendId) {
@@ -109,6 +114,7 @@ public class UserDbStorage extends BaseDbStorage<User> implements UserStorage {
                 friendId,
                 false
         );
+        feedDbStorage.addEvent(userId, FeedEventType.FRIEND, FeedOperations.ADD, friendId);
     }
 
     public void confirmationFriend(Long userId, Long friendId) {
@@ -117,6 +123,8 @@ public class UserDbStorage extends BaseDbStorage<User> implements UserStorage {
                 userId,
                 friendId
         );
+        feedDbStorage.addEvent(userId, FeedEventType.FRIEND, FeedOperations.UPDATE, friendId);
+
     }
 
     public Collection<Long> findFriendRequests(Long userId) {
@@ -125,6 +133,7 @@ public class UserDbStorage extends BaseDbStorage<User> implements UserStorage {
 
     public void unfriend(Long userId, Long friendId) {
         update(DELETE_BY_ID_FRIEND, userId, friendId);
+        feedDbStorage.addEvent(userId, FeedEventType.FRIEND, FeedOperations.REMOVE, friendId);
     }
 
     public Collection<User> findUsersByFilmsLike(Collection<Film> films) {
@@ -140,6 +149,5 @@ public class UserDbStorage extends BaseDbStorage<User> implements UserStorage {
         String query = String.format(FIND_USER_BY_FILMS_LIKE, inClause);
 
         return findMany(query, new UserRowMapper(), filmIds.toArray());
-
     }
 }

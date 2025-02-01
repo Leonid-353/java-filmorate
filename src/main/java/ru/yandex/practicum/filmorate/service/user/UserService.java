@@ -10,21 +10,26 @@ import ru.yandex.practicum.filmorate.exception.DuplicatedDataException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.mapper.FilmMapper;
 import ru.yandex.practicum.filmorate.mapper.UserMapper;
+import ru.yandex.practicum.filmorate.model.feed.UserFeedEvent;
 import ru.yandex.practicum.filmorate.model.film.Film;
 import ru.yandex.practicum.filmorate.model.user.User;
+import ru.yandex.practicum.filmorate.storage.feed.FeedDbStorage;
 import ru.yandex.practicum.filmorate.storage.film.FilmDbStorage;
 import ru.yandex.practicum.filmorate.storage.user.UserDbStorage;
+
 import java.util.*;
 
 @Service
 public class UserService {
     private final UserDbStorage userDbStorage;
     private final FilmDbStorage filmDbStorage;
+    private final FeedDbStorage feedDbStorage;
 
     @Autowired
-    public UserService(UserDbStorage userDbStorage, FilmDbStorage filmDbStorage) {
+    public UserService(UserDbStorage userDbStorage, FilmDbStorage filmDbStorage, FeedDbStorage feedDbStorage) {
         this.userDbStorage = userDbStorage;
         this.filmDbStorage = filmDbStorage;
+        this.feedDbStorage = feedDbStorage;
     }
 
     public Collection<UserDto> findAllUsersDto() {
@@ -97,6 +102,7 @@ public class UserService {
         }
     }
 
+
     public void confirmationFriend(Long userId, Long friendId) {
         User user = userDbStorage.findUser(userId).orElseThrow();
         User friend = userDbStorage.findUser(friendId).orElseThrow();
@@ -165,5 +171,9 @@ public class UserService {
                         .stream()
                         .map(FilmMapper::mapToFilmDto)
                         .toList();
+    }
+
+    public Collection<UserFeedEvent> findUserEvents(Long userId) {
+        return feedDbStorage.getEvents(userId);
     }
 }
