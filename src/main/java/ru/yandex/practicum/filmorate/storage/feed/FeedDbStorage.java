@@ -12,8 +12,8 @@ import java.util.Collection;
 
 @Repository
 public class FeedDbStorage extends BaseDbStorage<UserFeedEvent> implements FeedStorage {
-    private static final String ADD_EVENT = "INSERT INTO user_feed(user_id, event_type, operation, entity_id) VALUES (?,?,?,?)";
-    private static final String GET_EVENTS = "SELECT * FROM user_feed WHERE user_id = ?";
+    private static final String ADD_EVENT_TO_USER_HISTORY = "INSERT INTO user_feed(user_id, event_type, operation, entity_id) VALUES (?,?,?,?)";
+    private static final String GET_EVENTS_BY_USER_ID = "SELECT * FROM user_feed WHERE user_id = ?";
     private static final String DELETE_EVENTS_BY_USER_ID = "DELETE FROM user_feed WHERE user_id = ?";
 
     public FeedDbStorage(JdbcTemplate jdbc, FeedRowMapper mapper) {
@@ -21,11 +21,11 @@ public class FeedDbStorage extends BaseDbStorage<UserFeedEvent> implements FeedS
     }
 
     public void addEvent(Long userId, FeedEventType eventType, FeedOperations operation, Long entityId) {
-        insert(ADD_EVENT, userId, eventType.name(), operation.name(), entityId);
+        insert(ADD_EVENT_TO_USER_HISTORY, userId, eventType.name(), operation.name(), entityId);
     }
 
     public Collection<UserFeedEvent> getEvents(Long userId) {
-        return findMany(GET_EVENTS, new FeedRowMapper(), userId);
+        return findMany(GET_EVENTS_BY_USER_ID, new FeedRowMapper(), userId);
     }
 
     public void deleteEvents(Long userId) {
