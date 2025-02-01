@@ -44,8 +44,6 @@ public class UserDbStorage extends BaseDbStorage<User> implements UserStorage {
     private static final String FIND_BY_ID_FRIEND_REQUEST = "SELECT user_id FROM friend_request " +
             "WHERE friend_id = ? AND is_confirmed = false";
     private static final String FIND_USER_BY_FILMS_LIKE = "SELECT * FROM users LEFT JOIN likes ON users.id = likes.user_id where likes.film_id IN (%s)";
-    private final String ADD_EVENT = "INSERT INTO user_feed(user_id, event_type, operation, entity_id) VALUES (?,?,?,?)";
-    private final String GET_EVENTS = "SELECT * FROM user_feed WHERE user_id = ?";
     FeedDbStorage feedDbStorage;
 
     @Autowired
