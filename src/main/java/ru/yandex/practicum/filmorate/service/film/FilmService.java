@@ -174,13 +174,13 @@ public class FilmService {
                 .toList();
     }
 
-    public Collection<FilmDto> findCommonFilms (Long userId, Long friendId) {
-        Collection<Film> CommonFilms = filmDbStorage.findFilmsLike(userId)
+    public Collection<FilmDto> findCommonFilms(Long userId, Long friendId) {
+        Collection<Film> commonFilms = filmDbStorage.findFilmsLike(userId)
                 .stream()
                 .filter(film -> filmDbStorage.findFilmsLike(friendId).contains(film))
                 .toList();
         Collection<FilmDto> initializedCommonFilms =
-                filmDbStorage.initializeDataFromLinkedTables(CommonFilms.stream().toList())
+                filmDbStorage.initializeDataFromLinkedTables(commonFilms.stream().toList())
                         .stream()
                         .sorted(Comparator.comparing(Film::getLikesSize).reversed())
                         .map(FilmMapper::mapToFilmDto)
