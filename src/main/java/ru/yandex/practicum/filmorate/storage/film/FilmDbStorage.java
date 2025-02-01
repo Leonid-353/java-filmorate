@@ -38,7 +38,7 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
             "where fd.director_id = ? " +
             "GROUP BY f.ID " +
             "ORDER BY COUNT(l.FILM_ID) DESC";
-    private static final String FIND_ALL_FILMS_BY_DIRECTOR_ORDER_BY_RELEASE = "SELECT f.*, m.id as mpa_id, m.name as mpa_name FROM films as f " +
+    private static final String FIND_ALL_FILMS_BY_DIRECTOR_ORDER_BY_RELEASE = "SELECT f.*,  m.name as mpa_name FROM films as f " +
             "JOIN film_directors as fd on fd.film_id = f.id " +
             "LEFT JOIN mpa m on m.id = f.mpa_id " +
             "where fd.director_id = ? " +
@@ -50,7 +50,7 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
     private static final String FIND_FILM_ID_IN_LIKES = "SELECT film_id FROM likes WHERE film_id = ?";
     private static final String INSERT_QUERY = "INSERT INTO films (name, description, release_date, duration, mpa_id)" +
             "VALUES (?, ?, ?, ?, ?)";
-    private static final String SEARCH_FILMS_BY_TITLE_OR_DIRECTOR_NAME = "SELECT f.*, m.id as mpa_id, m.name as mpa_name FROM films f " +
+    private static final String SEARCH_FILMS_BY_TITLE_OR_DIRECTOR_NAME = "SELECT f.*,  m.name as mpa_name FROM films f " +
             "LEFT JOIN film_directors fd ON f.id = fd.film_id " +
             "LEFT JOIN director d ON fd.director_id = d.id " +
             "LEFT JOIN mpa m on m.id = f.mpa_id " +
@@ -75,7 +75,7 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
     private static final String DELETE_FILM_DIRECTOR_QUERY = "DELETE FROM film_directors WHERE film_id = ?";
     private static final String DELETE_LIKES_BY_FILM_ID_QUERY = "DELETE FROM likes WHERE film_id = ?";
     private static final String DELETE_LIKES_QUERY = "DELETE FROM likes WHERE film_id = ? AND user_id = ?";
-    private static final String FIND_LIKES_FILMS_FOR_USER = "SELECT f.*, m.id as mpa_id, m.name as mpa_name FROM films f " +
+    private static final String FIND_LIKES_FILMS_FOR_USER = "SELECT f.*, m.name as mpa_name FROM films f " +
             "JOIN likes l ON f.id = l.film_id " +
             "LEFT JOIN mpa m on m.id = f.mpa_id " +
             "WHERE l.user_id = ?";
