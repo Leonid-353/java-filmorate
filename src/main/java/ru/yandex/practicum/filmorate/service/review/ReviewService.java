@@ -35,7 +35,7 @@ public class ReviewService {
     public ReviewDto findReviewDto(Long reviewId) {
         return reviewDbStorage.findReview(reviewId)
                 .map(ReviewMapper::mapToReviewDto)
-                .orElseThrow();
+                .orElseThrow(() -> new NotFoundException("Отзыв не найден"));
     }
 
     // Получение всех отзывов

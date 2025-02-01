@@ -45,8 +45,4 @@ public class UpdateReviewRequest {
     public boolean hasFilmId() {
         return filmId != null;
     }
-
-    /*public boolean hasUseful() {
-        return useful != null;
-    }*/
 }
