@@ -12,9 +12,9 @@ import java.util.Collection;
 
 @Repository
 public class FeedDbStorage extends BaseDbStorage<UserFeedEvent> implements FeedStorage {
-    private final String ADD_EVENT = "INSERT INTO user_feed(user_id, event_type, operation, entity_id) VALUES (?,?,?,?)";
-    private final String GET_EVENTS = "SELECT * FROM user_feed WHERE user_id = ?";
-    private final String DELETE_EVENTS_BY_USER_ID = "DELETE FROM user_feed WHERE user_id = ?";
+    private static final String ADD_EVENT = "INSERT INTO user_feed(user_id, event_type, operation, entity_id) VALUES (?,?,?,?)";
+    private static final String GET_EVENTS = "SELECT * FROM user_feed WHERE user_id = ?";
+    private static final String DELETE_EVENTS_BY_USER_ID = "DELETE FROM user_feed WHERE user_id = ?";
 
     public FeedDbStorage(JdbcTemplate jdbc, FeedRowMapper mapper) {
         super(jdbc, mapper, UserFeedEvent.class);
