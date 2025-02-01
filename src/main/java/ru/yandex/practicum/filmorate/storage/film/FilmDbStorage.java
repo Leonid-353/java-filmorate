@@ -12,10 +12,7 @@ import ru.yandex.practicum.filmorate.storage.director.mapper.DirectorRowMapper;
 import ru.yandex.practicum.filmorate.storage.film.mapper.FilmRowMapper;
 import ru.yandex.practicum.filmorate.storage.genre.mapper.GenreRowMapper;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Repository
 public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
@@ -48,6 +45,7 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
     private static final String FIND_FILM_ID_IN_FILM_GENRE = "SELECT film_id FROM film_genre WHERE film_id = ?";
     private static final String FIND_FILM_ID_IN_FILM_DIRECTOR = "SELECT film_id FROM film_directors WHERE film_id = ?";
     private static final String FIND_FILM_ID_IN_LIKES = "SELECT film_id FROM likes WHERE film_id = ?";
+    //private static final String FIND
     private static final String INSERT_QUERY = "INSERT INTO films (name, description, release_date, duration, mpa_id)" +
             "VALUES (?, ?, ?, ?, ?)";
     private static final String SEARCH_FILMS_BY_TITLE_OR_DIRECTOR_NAME = "SELECT f.*,  m.name as mpa_name FROM films f " +
@@ -135,7 +133,7 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
         }
     }
 
-    private Collection<Film> initializeDataFromLinkedTables(List<Film> films) {
+    public Collection<Film> initializeDataFromLinkedTables(List<Film> films) {
         films.forEach(film -> film.setLikes(new HashSet<>(findManyId(FIND_ALL_LIKES, film.getId()))));
         films.forEach(film -> film.setGenres(new HashSet<>(findMany(FIND_ALL_GENRE, new GenreRowMapper(), film.getId()))));
         films.forEach(film -> film.setDirectors(new HashSet<>(findMany(FIND_ALL_DIRECTORS, new DirectorRowMapper(), film.getId()))));

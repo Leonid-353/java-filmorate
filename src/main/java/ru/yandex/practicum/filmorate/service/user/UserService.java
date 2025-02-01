@@ -128,8 +128,6 @@ public class UserService {
         userDbStorage.findUser(userId).orElseThrow();
         Collection<Film> filmsUserLike = filmDbStorage.findFilmsLike(userId);
         Collection<User> similarUsers = userDbStorage.findUsersByFilmsLike(filmsUserLike);
-
-
         //similarUsersWeight - мапа для хранения весов пользователей;
         // Long - вес пользователя по кол-ву совпавших фильмов, чем больше совпадений тем больше вес такого пользователя
         Map<User, Long> similarUsersWeight = new HashMap<>();
@@ -160,10 +158,12 @@ public class UserService {
             }
         }
 
-        return movieScore.entrySet().stream()
-                .sorted((entry1, entry2) -> entry2.getValue().compareTo(entry1.getValue()))
-                .map(Map.Entry::getKey)
-                .map(FilmMapper::mapToFilmDto)
-                .toList();
+        return  filmDbStorage.initializeDataFromLinkedTables(movieScore.entrySet().stream()
+                                .sorted((entry1, entry2) -> entry2.getValue().compareTo(entry1.getValue()))
+                                .map(Map.Entry::getKey)
+                                .toList())
+                        .stream()
+                        .map(FilmMapper::mapToFilmDto)
+                        .toList();
     }
 }
