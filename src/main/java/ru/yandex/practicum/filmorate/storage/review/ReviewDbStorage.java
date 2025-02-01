@@ -105,7 +105,7 @@ public class ReviewDbStorage extends BaseDbStorage<Review> implements ReviewStor
                 DELETE_LIKE_OR_DISLIKE,
                 reviewId,
                 userId
-                );
+        );
         insert(
                 INSERT_LIKE_DISLIKE_QUERY,
                 reviewId,

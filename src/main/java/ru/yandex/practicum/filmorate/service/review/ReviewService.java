@@ -55,7 +55,7 @@ public class ReviewService {
     public ReviewDto createReview(NewReviewRequest newReviewRequest) {
         Review review = ReviewMapper.mapToReview(newReviewRequest);
         if (userDbStorage.findUser(newReviewRequest.getUserId()).isPresent() &&
-        filmDbStorage.findFilm(newReviewRequest.getFilmId()).isPresent()) {
+                filmDbStorage.findFilm(newReviewRequest.getFilmId()).isPresent()) {
             reviewDbStorage.createReview(review);
             return ReviewMapper.mapToReviewDto(review);
         } else {
