@@ -96,16 +96,10 @@ public class UserDbStorage extends BaseDbStorage<User> implements UserStorage {
 
     @Override
     public void removeUser(Long userId) {
-        if (findOneId(FIND_USER_ID_LIKES, userId).isPresent()) {
-            delete(DELETE_Like_QUERY, userId);
-        }
-        if (findOneId(FIND_USER_ID_FRIEND_REQUEST_BY_USER_ID_ONLY, userId).isPresent()) {
-            delete(DELETE_FRIENDS, userId);
-        }
-        if (findOneId(FIND_FRIEND_ID_FRIEND_REQUEST, userId).isPresent()) {
-            delete(DELETE_FRIENDS_BY_FRIEND_ID, userId);
-        }
-        delete(DELETE_QUERY, userId);
+        update(DELETE_Like_QUERY, userId);
+        update(DELETE_FRIENDS, userId);
+        update(DELETE_FRIENDS_BY_FRIEND_ID, userId);
+        update(DELETE_QUERY, userId);
     }
 
     public void addFriendRequest(Long userId, Long friendId) {
@@ -130,7 +124,7 @@ public class UserDbStorage extends BaseDbStorage<User> implements UserStorage {
     }
 
     public void unfriend(Long userId, Long friendId) {
-        delete(DELETE_BY_ID_FRIEND, userId, friendId);
+        update(DELETE_BY_ID_FRIEND, userId, friendId);
     }
 
     public Collection<User> findUsersByFilmsLike(Collection<Film> films) {

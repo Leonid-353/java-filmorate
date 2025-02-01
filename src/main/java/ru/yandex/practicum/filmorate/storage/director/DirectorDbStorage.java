@@ -62,7 +62,7 @@ public class DirectorDbStorage extends BaseDbStorage<Director> implements Direct
 
     public void deleteDirector(Long id) {
         getDirector(id);
-        delete(DELETE_LINK_QUERY, id);
-        delete(DELETE_QUERY, id);
+        update(DELETE_LINK_QUERY, id);
+        update(DELETE_QUERY, id);
     }
 }
