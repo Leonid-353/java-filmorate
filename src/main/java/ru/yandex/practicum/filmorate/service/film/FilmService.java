@@ -61,7 +61,9 @@ public class FilmService {
     public FilmDto createFilm(NewFilmRequest newFilmRequest) {
         Film film = FilmMapper.mapToFilm(newFilmRequest);
         Mpa filmMpa = film.getMpa();
-        filmMpa.setName(filmDbStorage.findMpaName(filmMpa.getId()).orElseThrow());
+        if (filmMpa != null) {
+            filmMpa.setName(filmDbStorage.findMpaName(filmMpa.getId()).orElseThrow());
+        }
         if (film.getGenres() != null) {
             film.getGenres().forEach(genre -> genre.setName(filmDbStorage.findGenreName(genre.getId()).orElseThrow()));
         }
@@ -159,7 +161,14 @@ public class FilmService {
     }
 
     public Collection<FilmDto> getFilmsByDirectorId(Long directorId, String orderBy) {
-        return filmDbStorage.findFilmsByDirector(directorId, orderBy)
+        return filmDbStorage.findFilmsByDirectorId(directorId, orderBy)
+                .stream()
+                .map(FilmMapper::mapToFilmDto)
+                .toList();
+    }
+
+    public Collection<FilmDto> searchFilmsByTitleOrDirectorName(String query, String searchParam) {
+        return filmDbStorage.findFilmsByTitleOrDirectorName(query, searchParam)
                 .stream()
                 .map(FilmMapper::mapToFilmDto)
                 .toList();
