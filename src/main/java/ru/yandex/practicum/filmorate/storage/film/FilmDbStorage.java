@@ -77,8 +77,8 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
     private static final String DELETE_LIKES_QUERY = "DELETE FROM likes WHERE film_id = ? AND user_id = ?";
     private static final String FIND_LIKES_FILMS_FOR_USER = "SELECT f.*, m.id as mpa_id, m.name as mpa_name FROM films f " +
             "JOIN likes l ON f.id = l.film_id " +
-            "LEFT JOIN mpa m on f.id = m.id" +
-            " WHERE l.user_id = ?";
+            "LEFT JOIN mpa m on m.id = f.mpa_id " +
+            "WHERE l.user_id = ?";
     private static final String ORDER_BY_LIKES = "likes";
     private static final String ORDER_BY_RELEASE = "year";
     private static final String TITLE = "title";
