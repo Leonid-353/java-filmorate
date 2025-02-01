@@ -75,7 +75,10 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
     private static final String DELETE_FILM_DIRECTOR_QUERY = "DELETE FROM film_directors WHERE film_id = ?";
     private static final String DELETE_LIKES_BY_FILM_ID_QUERY = "DELETE FROM likes WHERE film_id = ?";
     private static final String DELETE_LIKES_QUERY = "DELETE FROM likes WHERE film_id = ? AND user_id = ?";
-    private static final String FIND_LIKES_FILMS_FOR_USER = "SELECT * FROM films JOIN likes ON films.id = likes.film_id  WHERE likes.user_id = ?";
+    private static final String FIND_LIKES_FILMS_FOR_USER = "SELECT f.*, m.id as mpa_id, m.name as mpa_name FROM films f " +
+            "JOIN likes l ON f.id = l.film_id " +
+            "LEFT JOIN mpa m on f.id = m.id" +
+            " WHERE l.user_id = ?";
     private static final String ORDER_BY_LIKES = "likes";
     private static final String ORDER_BY_RELEASE = "year";
     private static final String TITLE = "title";
@@ -176,14 +179,14 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
     @Override
     public Film createFilm(Film film) {
         long id;
-            id = insert(
-                    INSERT_QUERY,
-                    film.getName(),
-                    film.getDescription(),
-                    film.getReleaseDate(),
-                    film.getDuration(),
-                    film.getMpa() == null ? null : film.getMpa().getId()
-            )[0];
+        id = insert(
+                INSERT_QUERY,
+                film.getName(),
+                film.getDescription(),
+                film.getReleaseDate(),
+                film.getDuration(),
+                film.getMpa() == null ? null : film.getMpa().getId()
+        )[0];
         film.setId(id);
         if (film.getGenres() != null) {
             for (Genre genre : film.getGenres()) {
