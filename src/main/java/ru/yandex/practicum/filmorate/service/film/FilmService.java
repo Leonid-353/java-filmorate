@@ -175,16 +175,10 @@ public class FilmService {
     }
 
     public Collection<FilmDto> findCommonFilms(Long userId, Long friendId) {
-        Collection<Film> commonFilms = filmDbStorage.findFilmsLike(userId)
+        return filmDbStorage.initializeDataFromLinkedTables(filmDbStorage.findCommonFilms(userId, friendId))
                 .stream()
-                .filter(film -> filmDbStorage.findFilmsLike(friendId).contains(film))
+                .sorted(Comparator.comparing(Film::getLikesSize).reversed())
+                .map(FilmMapper::mapToFilmDto)
                 .toList();
-        Collection<FilmDto> initializedCommonFilms =
-                filmDbStorage.initializeDataFromLinkedTables(commonFilms.stream().toList())
-                        .stream()
-                        .sorted(Comparator.comparing(Film::getLikesSize).reversed())
-                        .map(FilmMapper::mapToFilmDto)
-                        .toList();
-        return initializedCommonFilms;
     }
 }

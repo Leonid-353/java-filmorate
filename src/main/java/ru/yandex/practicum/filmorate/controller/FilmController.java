@@ -1,6 +1,7 @@
 package ru.yandex.practicum.filmorate.controller;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Min;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
@@ -55,7 +56,8 @@ public class FilmController {
 
     @GetMapping("/common")
     @ResponseStatus(HttpStatus.OK)
-    public Collection<FilmDto> findCommonFilms(@RequestParam Long userId, @RequestParam Long friendId) {
+    public Collection<FilmDto> findCommonFilms(@Min(value = 1) @RequestParam Long userId,
+                                               @Min(value = 1) @RequestParam Long friendId) {
         return filmService.findCommonFilms(userId, friendId);
     }
 
