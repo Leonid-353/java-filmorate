@@ -45,7 +45,6 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
     private static final String FIND_FILM_ID_IN_FILM_GENRE = "SELECT film_id FROM film_genre WHERE film_id = ?";
     private static final String FIND_FILM_ID_IN_FILM_DIRECTOR = "SELECT film_id FROM film_directors WHERE film_id = ?";
     private static final String FIND_FILM_ID_IN_LIKES = "SELECT film_id FROM likes WHERE film_id = ?";
-    //private static final String FIND
     private static final String INSERT_QUERY = "INSERT INTO films (name, description, release_date, duration, mpa_id)" +
             "VALUES (?, ?, ?, ?, ?)";
     private static final String SEARCH_FILMS_BY_TITLE_OR_DIRECTOR_NAME = "SELECT f.*,  m.name as mpa_name FROM films f " +
@@ -56,6 +55,18 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
             "WHERE %s " +
             "GROUP BY f.ID " +
             "ORDER BY COUNT(l.FILM_ID) DESC";
+    private static final String SEARCH_FILMS_BY_GENRE_YEAR = "SELECT * FROM films AS f " +
+            "LEFT JOIN likes AS l ON l.film_id = f.id " +
+            "LEFT JOIN film_genre AS fg ON fg.film_id = f.id " +
+            "WHERE fg.genre_id = ? and (f.release_date BETWEEN '?-01-01' AND '?-12-31')";
+    private static final String SEARCH_FILMS_BY_YEAR = "SELECT * FROM films AS f " +
+            "LEFT JOIN likes AS l ON l.film_id = f.id " +
+            "LEFT JOIN film_genre AS fg ON fg.film_id = f.id " +
+            "WHERE f.release_date BETWEEN '?-01-01' AND '?-12-31'";
+    private static final String SEARCH_FILMS_BY_GENRE = "SELECT f.* FROM films AS f " +
+            "LEFT JOIN likes AS l ON l.film_id = f.id " +
+            "LEFT JOIN film_genre AS fg ON fg.film_id = f.id " +
+            "WHERE fg.genre_id = ?";
     private static final String SEARCH_PARAM_DIRECTOR_NAME = " D.NAME like ?";
     private static final String SEARCH_PARAM_FILM_NAME = " F.NAME like ?";
     private static final String SEARCH_BY_BOTH_PARAMS = String.format("%s OR %s", SEARCH_PARAM_FILM_NAME, SEARCH_PARAM_DIRECTOR_NAME);
@@ -269,5 +280,22 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
     public List<Film> findCommonFilms(Long userId, Long frienId) {
         return findMany(FIND_COMMON_FILMS, new FilmRowMapper(), userId, frienId);
     }
+
+    public Collection<Film> findFilmsByGenreYear(Long genreId, Long year) {
+
+        if (year != null && genreId != null) {
+            return findMany(SEARCH_FILMS_BY_GENRE_YEAR, new FilmRowMapper(), genreId, year, year);
+        } else if (genreId != null) {
+            return findMany(SEARCH_FILMS_BY_GENRE, new FilmRowMapper(), genreId);
+        } else if (year != null) {
+            return findMany(SEARCH_FILMS_BY_YEAR, new FilmRowMapper(), year);
+        } else {
+            return findMany(FIND_ALL_QUERY, new FilmRowMapper());
+        }
+
+
+    }
+
+
 
 }

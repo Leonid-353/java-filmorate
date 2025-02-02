@@ -90,8 +90,8 @@ public class FilmService {
     }
 
     // Получение популярных фильмов
-    public Collection<FilmDto> findPopularFilms(Long count) {
-        return filmDbStorage.findAllFilms().stream()
+    public Collection<FilmDto> findPopularFilms(Long count, Long genreId, Long year) {
+        return filmDbStorage.findFilmsByGenreYear(genreId, year).stream()
                 .sorted(Comparator.comparing(Film::getLikesSize).reversed())
                 .limit(count)
                 .map(FilmMapper::mapToFilmDto)
