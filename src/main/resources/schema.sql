@@ -8,6 +8,8 @@ DROP TABLE IF EXISTS films CASCADE;
 DROP TABLE IF EXISTS film_genre CASCADE;
 DROP TABLE IF EXISTS likes CASCADE;
 DROP TABLE IF EXISTS friend_request CASCADE;
+DROP TABLE IF EXISTS review_likes_dislikes CASCADE;
+DROP TABLE IF EXISTS reviews CASCADE;
 
 -- Создаем таблицу пользователей
 CREATE TABLE IF NOT EXISTS users
@@ -64,7 +66,6 @@ CREATE TABLE IF NOT EXISTS director
     name VARCHAR(255)
 );
 
-
 -- Создаем таблицу для связи режиссеров с фильмами
 CREATE TABLE IF NOT EXISTS film_directors
 (
@@ -88,4 +89,25 @@ CREATE TABLE IF NOT EXISTS likes
     user_id INTEGER REFERENCES users (id),
     film_id INTEGER REFERENCES films (id),
     PRIMARY KEY (user_id, film_id)
+);
+
+-- Создаем таблицу отзывов
+CREATE TABLE IF NOT EXISTS reviews
+(
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    content VARCHAR(500),
+    is_positive BOOLEAN,
+    user_id INT REFERENCES users (id),
+    film_id INT REFERENCES films (id),
+    useful INT
+);
+
+-- Создаем таблицу лайков/дизлайков отзывов
+CREATE TABLE IF NOT EXISTS review_likes_dislikes
+(
+    review_id INT REFERENCES reviews (id),
+    user_id INT REFERENCES users (id),
+    like_dislike BOOLEAN,
+    UNIQUE (review_id, user_id),
+    PRIMARY KEY (review_id, user_id)
 );

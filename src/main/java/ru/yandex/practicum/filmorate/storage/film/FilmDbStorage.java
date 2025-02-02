@@ -219,7 +219,7 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
                 newFilm.getMpa().getId(),
                 newFilm.getId()
         );
-        delete(DELETE_FILM_GENRE_QUERY, newFilm.getId());
+        update(DELETE_FILM_GENRE_QUERY, newFilm.getId());
         for (Genre genre : newFilm.getGenres()) {
             insert(
                     INSERT_FILM_GENRE_QUERY,
@@ -227,7 +227,7 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
                     genre.getId()
             );
         }
-        delete(DELETE_FILM_DIRECTOR_QUERY, newFilm.getId());
+        update(DELETE_FILM_DIRECTOR_QUERY, newFilm.getId());
         for (Director director : newFilm.getDirectors()) {
             insert(INSERT_FILM_DIRECTOR_QUERY,
                     newFilm.getId(),
@@ -238,16 +238,10 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
 
     @Override
     public void removeFilm(Long filmId) {
-        if (findOneId(FIND_FILM_ID_IN_FILM_GENRE, filmId).isPresent()) {
-            delete(DELETE_FILM_GENRE_QUERY, filmId);
-        }
-        if (findOneId(FIND_FILM_ID_IN_FILM_DIRECTOR, filmId).isPresent()) {
-            delete(DELETE_FILM_DIRECTOR_QUERY, filmId);
-        }
-        if (findOneId(FIND_FILM_ID_IN_LIKES, filmId).isPresent()) {
-            delete(DELETE_LIKES_BY_FILM_ID_QUERY, filmId);
-        }
-        delete(DELETE_QUERY, filmId);
+        update(DELETE_FILM_GENRE_QUERY, filmId);
+        update(DELETE_FILM_DIRECTOR_QUERY, filmId);
+        update(DELETE_LIKES_BY_FILM_ID_QUERY, filmId);
+        update(DELETE_QUERY, filmId);
     }
 
     public void likeIt(Long filmId, Long userId) {
@@ -259,7 +253,7 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
     }
 
     public void removeLikes(Long filmId, Long userId) {
-        delete(DELETE_LIKES_QUERY, filmId, userId);
+        update(DELETE_LIKES_QUERY, filmId, userId);
     }
 
     public Collection<Film> findFilmsLike(Long userId) {

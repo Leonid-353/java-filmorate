@@ -96,8 +96,4 @@ public class BaseDbStorage<T> {
     protected void update(String query, Object... params) {
         int rowsUpdated = jdbc.update(query, params);
     }
-
-    protected void delete(String query, Object... params) {
-        int rowsDeleted = jdbc.update(query, params);
-    }
 }
