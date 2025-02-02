@@ -4,7 +4,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.model.review.Review;
 import ru.yandex.practicum.filmorate.storage.BaseDbStorage;
-import ru.yandex.practicum.filmorate.storage.feed.FeedDbStorage;
 import ru.yandex.practicum.filmorate.storage.review.mapper.ReviewRowMapper;
 
 import java.util.Collection;
@@ -37,7 +36,7 @@ public class ReviewDbStorage extends BaseDbStorage<Review> implements ReviewStor
     private static final String DELETE_LIKE_OR_DISLIKE = "DELETE FROM review_likes_dislikes " +
             "WHERE review_id = ? AND user_id = ?";
 
-    public ReviewDbStorage(JdbcTemplate jdbc, ReviewRowMapper mapper, FeedDbStorage feedDbStorage) {
+    public ReviewDbStorage(JdbcTemplate jdbc, ReviewRowMapper mapper) {
         super(jdbc, mapper, Review.class);
     }
 

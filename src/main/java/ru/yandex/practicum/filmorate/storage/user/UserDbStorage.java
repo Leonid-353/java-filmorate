@@ -1,6 +1,5 @@
 package ru.yandex.practicum.filmorate.storage.user;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.model.film.Film;
@@ -42,7 +41,6 @@ public class UserDbStorage extends BaseDbStorage<User> implements UserStorage {
             "WHERE friend_id = ? AND is_confirmed = false";
     private static final String FIND_USER_BY_FILMS_LIKE = "SELECT * FROM users LEFT JOIN likes ON users.id = likes.user_id where likes.film_id IN (%s)";
 
-    @Autowired
     public UserDbStorage(JdbcTemplate jdbc, UserRowMapper mapper) {
         super(jdbc, mapper, User.class);
     }
@@ -114,7 +112,6 @@ public class UserDbStorage extends BaseDbStorage<User> implements UserStorage {
                 userId,
                 friendId
         );
-
     }
 
     public Collection<Long> findFriendRequests(Long userId) {

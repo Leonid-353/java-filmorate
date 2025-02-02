@@ -70,6 +70,7 @@ public class UserService {
 
     public void removeUser(Long userId) {
         userDbStorage.removeUser(userId);
+        feedDbStorage.deleteEvents(userId);
     }
 
     public Collection<User> findAllFriendsUser(Long userId) {
@@ -112,7 +113,6 @@ public class UserService {
             throw new DuplicatedDataException("Запрос на добавление в друзья уже отправлен");
         }
     }
-
 
     public void confirmationFriend(Long userId, Long friendId) {
         User user = userDbStorage.findUser(userId).orElseThrow();

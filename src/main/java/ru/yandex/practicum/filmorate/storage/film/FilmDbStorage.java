@@ -10,7 +10,6 @@ import ru.yandex.practicum.filmorate.model.film.Film;
 import ru.yandex.practicum.filmorate.model.film.Genre;
 import ru.yandex.practicum.filmorate.storage.BaseDbStorage;
 import ru.yandex.practicum.filmorate.storage.director.mapper.DirectorRowMapper;
-import ru.yandex.practicum.filmorate.storage.feed.FeedDbStorage;
 import ru.yandex.practicum.filmorate.storage.film.mapper.FilmRowMapper;
 import ru.yandex.practicum.filmorate.storage.genre.mapper.GenreRowMapper;
 
@@ -47,7 +46,6 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
     private static final String FIND_FILM_ID_IN_FILM_GENRE = "SELECT film_id FROM film_genre WHERE film_id = ?";
     private static final String FIND_FILM_ID_IN_FILM_DIRECTOR = "SELECT film_id FROM film_directors WHERE film_id = ?";
     private static final String FIND_FILM_ID_IN_LIKES = "SELECT film_id FROM likes WHERE film_id = ?";
-    //private static final String FIND
     private static final String INSERT_QUERY = "INSERT INTO films (name, description, release_date, duration, mpa_id)" +
             "VALUES (?, ?, ?, ?, ?)";
     private static final String SEARCH_FILMS_BY_TITLE_OR_DIRECTOR_NAME = "SELECT f.*,  m.name as mpa_name FROM films f " +
@@ -92,7 +90,7 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
     private static final String DIRECTOR = "director";
 
     @Autowired
-    public FilmDbStorage(JdbcTemplate jdbc, FilmRowMapper mapper, FeedDbStorage feedDbStorage) {
+    public FilmDbStorage(JdbcTemplate jdbc, FilmRowMapper mapper) {
         super(jdbc, mapper, Film.class);
     }
 
