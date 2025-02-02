@@ -173,4 +173,12 @@ public class FilmService {
                 .map(FilmMapper::mapToFilmDto)
                 .toList();
     }
+
+    public Collection<FilmDto> findCommonFilms(Long userId, Long friendId) {
+        return filmDbStorage.initializeDataFromLinkedTables(filmDbStorage.findCommonFilms(userId, friendId))
+                .stream()
+                .sorted(Comparator.comparing(Film::getLikesSize).reversed())
+                .map(FilmMapper::mapToFilmDto)
+                .toList();
+    }
 }
