@@ -12,7 +12,7 @@ import ru.yandex.practicum.filmorate.constants.FeedOperations;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @AllArgsConstructor
 @NoArgsConstructor
-public class UserFeedEvent {
+public class UserFeedMessage {
     private Long eventId;
     private Long userId;
     private Long timestamp;

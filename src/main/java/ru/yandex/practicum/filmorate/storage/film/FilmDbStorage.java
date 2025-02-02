@@ -3,8 +3,6 @@ package ru.yandex.practicum.filmorate.storage.film;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
-import ru.yandex.practicum.filmorate.constants.FeedEventType;
-import ru.yandex.practicum.filmorate.constants.FeedOperations;
 import ru.yandex.practicum.filmorate.exception.BadRequestException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.film.Director;
@@ -92,15 +90,10 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
     private static final String ORDER_BY_RELEASE = "year";
     private static final String TITLE = "title";
     private static final String DIRECTOR = "director";
-    private static final String TITLE_DIRECTOR = "title,director";
-    private static final String DIRECTOR_TITLE = "director,title";
-
-    FeedDbStorage feedDbStorage;
 
     @Autowired
     public FilmDbStorage(JdbcTemplate jdbc, FilmRowMapper mapper, FeedDbStorage feedDbStorage) {
         super(jdbc, mapper, Film.class);
-        this.feedDbStorage = feedDbStorage;
     }
 
     @Override
@@ -255,12 +248,10 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
                 filmId,
                 userId
         );
-        feedDbStorage.addEvent(userId, FeedEventType.LIKE, FeedOperations.ADD, filmId);
     }
 
     public void removeLikes(Long filmId, Long userId) {
         update(DELETE_LIKES_QUERY, filmId, userId);
-        feedDbStorage.addEvent(userId, FeedEventType.LIKE, FeedOperations.REMOVE, filmId);
     }
 
     public Collection<Film> findFilmsLike(Long userId) {

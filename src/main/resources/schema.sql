@@ -41,10 +41,6 @@ CREATE TABLE user_feed
     FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
 );
 
--- Создаем уникальные индексы для полей email и login
-CREATE UNIQUE INDEX IF NOT EXISTS USER_EMAIL_UINDEX ON users (email);
-CREATE UNIQUE INDEX IF NOT EXISTS USER_LOGIN_UINDEX ON users (login);
-
 -- Создаем таблицу жанров
 CREATE TABLE IF NOT EXISTS genre
 (
@@ -104,20 +100,28 @@ CREATE TABLE IF NOT EXISTS likes
 -- Создаем таблицу отзывов
 CREATE TABLE IF NOT EXISTS reviews
 (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    content VARCHAR(500),
+    id          INT AUTO_INCREMENT PRIMARY KEY,
+    content     VARCHAR(500),
     is_positive BOOLEAN,
-    user_id INT REFERENCES users (id),
-    film_id INT REFERENCES films (id),
-    useful INT
+    user_id     INT REFERENCES users (id),
+    film_id     INT REFERENCES films (id),
+    useful      INT
 );
 
 -- Создаем таблицу лайков/дизлайков отзывов
 CREATE TABLE IF NOT EXISTS review_likes_dislikes
 (
-    review_id INT REFERENCES reviews (id),
-    user_id INT REFERENCES users (id),
+    review_id    INT REFERENCES reviews (id),
+    user_id      INT REFERENCES users (id),
     like_dislike BOOLEAN,
     UNIQUE (review_id, user_id),
     PRIMARY KEY (review_id, user_id)
 );
+
+-- Создаем уникальные индексы для полей email и login
+CREATE UNIQUE INDEX IF NOT EXISTS USER_EMAIL_UINDEX ON users (email);
+CREATE UNIQUE INDEX IF NOT EXISTS USER_LOGIN_UINDEX ON users (login);
+
+-- Индексы для таблицы user_feed
+CREATE INDEX idx_user_feed_user_id ON user_feed (user_id);
+CREATE INDEX idx_user_feed_user_id_timestamp ON user_feed (user_id, timestamp DESC);

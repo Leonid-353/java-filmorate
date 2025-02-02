@@ -2,8 +2,6 @@ package ru.yandex.practicum.filmorate.storage.review;
 
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
-import ru.yandex.practicum.filmorate.constants.FeedEventType;
-import ru.yandex.practicum.filmorate.constants.FeedOperations;
 import ru.yandex.practicum.filmorate.model.review.Review;
 import ru.yandex.practicum.filmorate.storage.BaseDbStorage;
 import ru.yandex.practicum.filmorate.storage.feed.FeedDbStorage;
@@ -38,11 +36,9 @@ public class ReviewDbStorage extends BaseDbStorage<Review> implements ReviewStor
     private static final String DELETE_LIKES_DISLIKES_QUERY = "DELETE FROM review_likes_dislikes WHERE review_id = ?";
     private static final String DELETE_LIKE_OR_DISLIKE = "DELETE FROM review_likes_dislikes " +
             "WHERE review_id = ? AND user_id = ?";
-    FeedDbStorage feedDbStorage;
 
     public ReviewDbStorage(JdbcTemplate jdbc, ReviewRowMapper mapper, FeedDbStorage feedDbStorage) {
         super(jdbc, mapper, Review.class);
-        this.feedDbStorage = feedDbStorage;
     }
 
     @Override
@@ -75,7 +71,6 @@ public class ReviewDbStorage extends BaseDbStorage<Review> implements ReviewStor
                 review.getUseful()
         )[0];
         review.setId(id);
-        feedDbStorage.addEvent(review.getUserId(), FeedEventType.REVIEW, FeedOperations.ADD, id);
         return review;
     }
 
@@ -89,13 +84,11 @@ public class ReviewDbStorage extends BaseDbStorage<Review> implements ReviewStor
                 newReview.getFilmId(),
                 newReview.getId()
         );
-        feedDbStorage.addEvent(newReview.getUserId(), FeedEventType.REVIEW, FeedOperations.UPDATE, newReview.getId());
         return newReview;
     }
 
     @Override
     public void removeReview(Long reviewId) {
-        Review review = findReview(reviewId).orElse(null);
         update(
                 DELETE_LIKES_DISLIKES_QUERY,
                 reviewId
@@ -105,9 +98,6 @@ public class ReviewDbStorage extends BaseDbStorage<Review> implements ReviewStor
                 DELETE_QUERY,
                 reviewId
         );
-        if (review != null) {
-            feedDbStorage.addEvent(review.getUserId(), FeedEventType.REVIEW, FeedOperations.REMOVE, reviewId);
-        }
     }
 
     public void likeIt(Long reviewId, Long userId) {

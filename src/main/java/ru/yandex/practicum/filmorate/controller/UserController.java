@@ -9,7 +9,7 @@ import ru.yandex.practicum.filmorate.dto.FilmDto;
 import ru.yandex.practicum.filmorate.dto.NewUserRequest;
 import ru.yandex.practicum.filmorate.dto.UpdateUserRequest;
 import ru.yandex.practicum.filmorate.dto.UserDto;
-import ru.yandex.practicum.filmorate.model.feed.UserFeedEvent;
+import ru.yandex.practicum.filmorate.model.feed.UserFeedMessage;
 import ru.yandex.practicum.filmorate.model.user.User;
 import ru.yandex.practicum.filmorate.service.user.UserService;
 
@@ -40,7 +40,7 @@ public class UserController {
 
     @GetMapping("/{userId}/feed")
     @ResponseStatus(HttpStatus.OK)
-    public Collection<UserFeedEvent> geUserFeed(@PathVariable("userId") Long userId) {
+    public Collection<UserFeedMessage> geUserFeed(@PathVariable("userId") Long userId) {
         return userService.findUserEvents(userId);
     }
 
