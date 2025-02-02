@@ -145,6 +145,7 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
     }
 
     public Collection<Film> findFilmsByTitleOrDirectorName(String query, String searchParam) {
+        String[] searchParams = searchParam.split(",");
         String preparedSearchValue = "%" + query + "%";
         Object[] searchValues = new String[searchParams.length];
         Arrays.fill(searchValues, preparedSearchValue);
