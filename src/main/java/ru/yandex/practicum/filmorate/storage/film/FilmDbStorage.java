@@ -289,7 +289,6 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
     }
 
     public Collection<Film> findFilmsByGenreYear(Long genreId, Long year, Long count) {
-
         List<Film> films;
         if (year != null && genreId != null) {
             films = findMany(SEARCH_FILMS_BY_GENRE_YEAR, new FilmRowMapper(), genreId, year, count);
@@ -298,9 +297,8 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
         } else if (year != null) {
             films = findMany(SEARCH_FILMS_BY_YEAR, new FilmRowMapper(), year, count);
         } else {
-            films = findMany(FIND_WITH_LIMIT, new FilmRowMapper(), count);
+           films = findMany(FIND_WITH_LIMIT, new FilmRowMapper(), count);
         }
-
         return initializeDataFromLinkedTables(films);
     }
 
