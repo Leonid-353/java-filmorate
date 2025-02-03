@@ -88,7 +88,7 @@ CREATE TABLE IF NOT EXISTS friend_request
 CREATE TABLE user_feed
 (
     id         INT AUTO_INCREMENT PRIMARY KEY,
-    user_id    INTEGER REFERENCES users (id),
+    user_id    INTEGER,
     timestamp  TIMESTAMP                         NOT NULL DEFAULT CURRENT_TIMESTAMP,
     event_type ENUM ('LIKE', 'REVIEW', 'FRIEND') NOT NULL,
     operation  ENUM ('ADD', 'REMOVE', 'UPDATE')  NOT NULL,
