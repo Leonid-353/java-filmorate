@@ -1,12 +1,16 @@
 package ru.yandex.practicum.filmorate.service.review;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
+import ru.yandex.practicum.filmorate.constants.FeedEventType;
+import ru.yandex.practicum.filmorate.constants.FeedOperations;
 import ru.yandex.practicum.filmorate.dto.NewReviewRequest;
 import ru.yandex.practicum.filmorate.dto.ReviewDto;
 import ru.yandex.practicum.filmorate.dto.UpdateReviewRequest;
 import ru.yandex.practicum.filmorate.exception.DuplicatedDataException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
+import ru.yandex.practicum.filmorate.listener.UserFeedEvent;
 import ru.yandex.practicum.filmorate.mapper.ReviewMapper;
 import ru.yandex.practicum.filmorate.model.review.Review;
 import ru.yandex.practicum.filmorate.storage.film.FilmDbStorage;
@@ -21,14 +25,17 @@ public class ReviewService {
     private final ReviewDbStorage reviewDbStorage;
     private final UserDbStorage userDbStorage;
     private final FilmDbStorage filmDbStorage;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Autowired
     public ReviewService(ReviewDbStorage reviewDbStorage,
                          UserDbStorage userDbStorage,
-                         FilmDbStorage filmDbStorage) {
+                         FilmDbStorage filmDbStorage,
+                         ApplicationEventPublisher eventPublisher) {
         this.reviewDbStorage = reviewDbStorage;
         this.userDbStorage = userDbStorage;
         this.filmDbStorage = filmDbStorage;
+        this.eventPublisher = eventPublisher;
     }
 
     // Получение отзыва по id
@@ -56,7 +63,8 @@ public class ReviewService {
         Review review = ReviewMapper.mapToReview(newReviewRequest);
         if (userDbStorage.findUser(newReviewRequest.getUserId()).isPresent() &&
                 filmDbStorage.findFilm(newReviewRequest.getFilmId()).isPresent()) {
-            reviewDbStorage.createReview(review);
+            Review createdReview = reviewDbStorage.createReview(review);
+            eventPublisher.publishEvent(new UserFeedEvent(this, createdReview.getUserId(), FeedEventType.REVIEW, FeedOperations.ADD, createdReview.getId()));
             return ReviewMapper.mapToReviewDto(review);
         } else {
             throw new NotFoundException("Not found");
@@ -71,6 +79,7 @@ public class ReviewService {
                     .map(review -> ReviewMapper.updateReviewFields(review, updateReviewRequest))
                     .orElseThrow(() -> new NotFoundException("Отзыв не найден"));
             reviewDbStorage.updateReview(updateReview);
+            eventPublisher.publishEvent(new UserFeedEvent(this, updateReview.getUserId(), FeedEventType.REVIEW, FeedOperations.UPDATE, updateReview.getId()));
             return ReviewMapper.mapToReviewDto(updateReview);
         } else {
             throw new NotFoundException("Not found");
@@ -79,7 +88,9 @@ public class ReviewService {
 
     // Удаление отзыва
     public void removeReview(Long reviewId) {
+        ReviewDto review = findReviewDto(reviewId);
         reviewDbStorage.removeReview(reviewId);
+        eventPublisher.publishEvent(new UserFeedEvent(this, review.getUserId(), FeedEventType.REVIEW, FeedOperations.REMOVE, reviewId));
     }
 
     // Поставить лайк отзыву
