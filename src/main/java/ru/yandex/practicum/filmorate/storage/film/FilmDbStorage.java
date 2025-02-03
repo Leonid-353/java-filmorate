@@ -18,6 +18,12 @@ import java.util.*;
 public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
     private static final String FIND_ALL_QUERY = "SELECT f.*, m.id  as mpa_id, m.name as mpa_name  FROM films f " +
             "LEFT JOIN mpa m on m.id = f.mpa_id ";
+    private static final String FIND_WITH_LIMIT = "SELECT f.*, m.id  as mpa_id, m.name as mpa_name  FROM films f " +
+            "LEFT JOIN mpa m on m.id = f.mpa_id " +
+            "LEFT JOIN likes l ON l.film_id = f.id " +
+            "GROUP BY f.ID " +
+            "ORDER BY COUNT(l.FILM_ID) DESC " +
+            "LIMIT ?";
     private static final String FIND_BY_ID_QUERY = "SELECT f.*, m.id  as mpa_id, m.name as mpa_name  FROM films f " +
             "LEFT JOIN mpa m on m.id = f.mpa_id " +
             " WHERE f.id = ?";
@@ -56,6 +62,30 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
             "WHERE %s " +
             "GROUP BY f.ID " +
             "ORDER BY COUNT(l.FILM_ID) DESC";
+    private static final String SEARCH_FILMS_BY_GENRE_YEAR = "SELECT f.*, m.id  as mpa_id, m.name as mpa_name FROM films AS f " +
+            "LEFT JOIN likes AS l ON l.film_id = f.id " +
+            "LEFT JOIN film_genre AS fg ON fg.film_id = f.id " +
+            "LEFT JOIN mpa m on m.id = f.mpa_id " +
+            "WHERE fg.genre_id = ? and YEAR(release_date) = ? " +
+            "GROUP BY f.id " +
+            "ORDER BY COUNT(l.film_id) DESC " +
+            "LIMIT ?";
+    private static final String SEARCH_FILMS_BY_YEAR = "SELECT f.*, m.id as mpa_id, m.name as mpa_name FROM films AS f " +
+            "LEFT JOIN likes AS l ON l.film_id = f.id " +
+            "LEFT JOIN film_genre AS fg ON fg.film_id = f.id " +
+            "LEFT JOIN mpa m on m.id = f.mpa_id " +
+            "WHERE YEAR(release_date) = ? " +
+            "GROUP BY f.id " +
+            "ORDER BY COUNT(l.film_id) DESC " +
+            "LIMIT ?";
+    private static final String SEARCH_FILMS_BY_GENRE = "SELECT f.*, m.id as mpa_id, m.name as mpa_name  FROM films AS f " +
+            "LEFT JOIN likes AS l ON l.film_id = f.id " +
+            "LEFT JOIN film_genre AS fg ON fg.film_id = f.id " +
+            "LEFT JOIN mpa m on m.id = f.mpa_id " +
+            "WHERE fg.genre_id = ? " +
+            "GROUP BY f.id " +
+            "ORDER BY COUNT(l.film_id) DESC " +
+            "LIMIT ?";
     private static final String SEARCH_PARAM_DIRECTOR_NAME = " D.NAME like ?";
     private static final String SEARCH_PARAM_FILM_NAME = " F.NAME like ?";
     private static final String INSERT_FILM_GENRE_QUERY = "INSERT INTO film_genre (film_Id, genre_Id)" +
@@ -257,6 +287,22 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
 
     public List<Film> findCommonFilms(Long userId, Long friendId) {
         return findMany(FIND_COMMON_FILMS, new FilmRowMapper(), userId, friendId);
+    }
+
+    public Collection<Film> findFilmsByGenreYear(Long genreId, Long year, Long count) {
+
+        List<Film> films;
+        if (year != null && genreId != null) {
+            films = findMany(SEARCH_FILMS_BY_GENRE_YEAR, new FilmRowMapper(), genreId, year, count);
+        } else if (genreId != null) {
+            films = findMany(SEARCH_FILMS_BY_GENRE, new FilmRowMapper(), genreId, count);
+        } else if (year != null) {
+            films = findMany(SEARCH_FILMS_BY_YEAR, new FilmRowMapper(), year, count);
+        } else {
+            films = findMany(FIND_WITH_LIMIT, new FilmRowMapper(), count);
+        }
+
+        return initializeDataFromLinkedTables(films);
     }
 
 }
