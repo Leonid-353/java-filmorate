@@ -1,11 +1,15 @@
 package ru.yandex.practicum.filmorate.service.film;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
+import ru.yandex.practicum.filmorate.constants.FeedEventType;
+import ru.yandex.practicum.filmorate.constants.FeedOperations;
 import ru.yandex.practicum.filmorate.dto.FilmDto;
 import ru.yandex.practicum.filmorate.dto.NewFilmRequest;
 import ru.yandex.practicum.filmorate.dto.UpdateFilmRequest;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
+import ru.yandex.practicum.filmorate.listener.UserFeedEvent;
 import ru.yandex.practicum.filmorate.mapper.FilmMapper;
 import ru.yandex.practicum.filmorate.model.film.Director;
 import ru.yandex.practicum.filmorate.model.film.Film;
@@ -29,18 +33,21 @@ public class FilmService {
     private final GenreDbStorage genreDbStorage;
     private final MpaDbStorage mpaDbStorage;
     private final DirectorDbStorage directorDbStorage;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Autowired
     public FilmService(FilmDbStorage filmDbStorage,
                        UserDbStorage userDbStorage,
                        GenreDbStorage genreDbStorage,
                        MpaDbStorage mpaDbStorage,
-                       DirectorDbStorage directorDbStorage) {
+                       DirectorDbStorage directorDbStorage,
+                       ApplicationEventPublisher eventPublisher) {
         this.filmDbStorage = filmDbStorage;
         this.userDbStorage = userDbStorage;
         this.genreDbStorage = genreDbStorage;
         this.mpaDbStorage = mpaDbStorage;
         this.directorDbStorage = directorDbStorage;
+        this.eventPublisher = eventPublisher;
     }
 
     // Получение всех фильмов
@@ -104,6 +111,7 @@ public class FilmService {
         User user = userDbStorage.findUser(userId).orElseThrow();
         if (film.addUserIdInLikes(user.getId())) {
             filmDbStorage.likeIt(filmId, userId);
+            eventPublisher.publishEvent(new UserFeedEvent(this, userId, FeedEventType.LIKE, FeedOperations.ADD, filmId));
         }
     }
 
@@ -113,6 +121,7 @@ public class FilmService {
         User user = userDbStorage.findUser(userId).orElseThrow();
         if (film.removeUserIdInLikes(user.getId())) {
             filmDbStorage.removeLikes(filmId, userId);
+            eventPublisher.publishEvent(new UserFeedEvent(this, userId, FeedEventType.LIKE, FeedOperations.REMOVE, filmId));
         }
     }
 
