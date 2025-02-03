@@ -10,6 +10,7 @@ DROP TABLE IF EXISTS likes CASCADE;
 DROP TABLE IF EXISTS friend_request CASCADE;
 DROP TABLE IF EXISTS review_likes_dislikes CASCADE;
 DROP TABLE IF EXISTS reviews CASCADE;
+DROP TABLE IF EXISTS user_feed CASCADE;
 
 -- Создаем таблицу пользователей
 CREATE TABLE IF NOT EXISTS users
@@ -82,6 +83,21 @@ CREATE TABLE IF NOT EXISTS friend_request
     is_confirmed BOOLEAN,
     PRIMARY KEY (user_id, friend_id)
 );
+
+--Создаём таблицу истории пользователей
+CREATE TABLE user_feed
+(
+    id         INT AUTO_INCREMENT PRIMARY KEY,
+    user_id    INTEGER,
+    timestamp  TIMESTAMP                         NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    event_type ENUM ('LIKE', 'REVIEW', 'FRIEND') NOT NULL,
+    operation  ENUM ('ADD', 'REMOVE', 'UPDATE')  NOT NULL,
+    entity_id  INT                               NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
+);
+-- Индексы для таблицы user_feed
+CREATE INDEX idx_user_feed_user_id ON user_feed (user_id);
+CREATE INDEX idx_user_feed_user_id_timestamp ON user_feed (user_id, timestamp DESC);
 
 -- Создаем таблицу лайков
 CREATE TABLE IF NOT EXISTS likes

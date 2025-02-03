@@ -58,7 +58,6 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
             "ORDER BY COUNT(l.FILM_ID) DESC";
     private static final String SEARCH_PARAM_DIRECTOR_NAME = " D.NAME like ?";
     private static final String SEARCH_PARAM_FILM_NAME = " F.NAME like ?";
-    private static final String SEARCH_BY_BOTH_PARAMS = String.format("%s OR %s", SEARCH_PARAM_FILM_NAME, SEARCH_PARAM_DIRECTOR_NAME);
     private static final String INSERT_FILM_GENRE_QUERY = "INSERT INTO film_genre (film_Id, genre_Id)" +
             "VALUES (?, ?)";
     private static final String INSERT_FILM_DIRECTOR_QUERY = "INSERT INTO film_directors (film_Id, director_Id)" +
@@ -89,8 +88,6 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
     private static final String ORDER_BY_RELEASE = "year";
     private static final String TITLE = "title";
     private static final String DIRECTOR = "director";
-    private static final String TITLE_DIRECTOR = "title,director";
-    private static final String DIRECTOR_TITLE = "director,title";
 
     public FilmDbStorage(JdbcTemplate jdbc, FilmRowMapper mapper) {
         super(jdbc, mapper, Film.class);
@@ -115,30 +112,22 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
     }
 
     public Collection<Film> findFilmsByTitleOrDirectorName(String query, String searchParam) {
+        String[] searchParams = searchParam.split(",");
         String preparedSearchValue = "%" + query + "%";
-        switch (searchParam) {
-            case TITLE: {
-                String searchQuery = String.format(SEARCH_FILMS_BY_TITLE_OR_DIRECTOR_NAME, SEARCH_PARAM_FILM_NAME);
-                System.out.println("searchQuery: " + searchQuery);
-                List<Film> films = findMany(searchQuery, new FilmRowMapper(), preparedSearchValue);
-                return initializeDataFromLinkedTables(films);
-            }
-            case DIRECTOR: {
-                String searchQuery = String.format(SEARCH_FILMS_BY_TITLE_OR_DIRECTOR_NAME, SEARCH_PARAM_DIRECTOR_NAME);
-                List<Film> films = findMany(searchQuery, new FilmRowMapper(), preparedSearchValue);
-                return initializeDataFromLinkedTables(films);
-            }
-            case TITLE_DIRECTOR:
-            case DIRECTOR_TITLE: {
-                String searchCondition = String.format(SEARCH_BY_BOTH_PARAMS, SEARCH_FILMS_BY_TITLE_OR_DIRECTOR_NAME, SEARCH_FILMS_BY_TITLE_OR_DIRECTOR_NAME);
-                String searchQuery = String.format(SEARCH_FILMS_BY_TITLE_OR_DIRECTOR_NAME, searchCondition);
-                List<Film> films = findMany(searchQuery, new FilmRowMapper(), preparedSearchValue, preparedSearchValue);
-                return initializeDataFromLinkedTables(films);
-            }
-            default: {
-                throw new BadRequestException("Invalid search parameter: " + searchParam);
-            }
+        Object[] searchValues = new String[searchParams.length];
+        Arrays.fill(searchValues, preparedSearchValue);
+        if (searchParams.length == 0 || Arrays.stream(searchParams)
+                .anyMatch(it -> !it.equals(TITLE) && !it.equals(DIRECTOR))) {
+            throw new BadRequestException("Invalid search parameter: " + searchParam);
+        } else {
+            searchParam = String.join(" OR ", searchParams)
+                    .replace(TITLE, SEARCH_PARAM_FILM_NAME)
+                    .replace(DIRECTOR, SEARCH_PARAM_DIRECTOR_NAME);
         }
+        String searchQuery = String.format(SEARCH_FILMS_BY_TITLE_OR_DIRECTOR_NAME, searchParam);
+        List<Film> films;
+        films = findMany(searchQuery, new FilmRowMapper(), searchValues);
+        return initializeDataFromLinkedTables(films);
     }
 
     public Collection<Film> initializeDataFromLinkedTables(List<Film> films) {
@@ -266,8 +255,8 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
         return findMany(FIND_LIKES_FILMS_FOR_USER, new FilmRowMapper(), userId);
     }
 
-    public List<Film> findCommonFilms(Long userId, Long frienId) {
-        return findMany(FIND_COMMON_FILMS, new FilmRowMapper(), userId, frienId);
+    public List<Film> findCommonFilms(Long userId, Long friendId) {
+        return findMany(FIND_COMMON_FILMS, new FilmRowMapper(), userId, friendId);
     }
 
 }
