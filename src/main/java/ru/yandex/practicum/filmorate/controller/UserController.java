@@ -40,7 +40,7 @@ public class UserController {
 
     @GetMapping("/{userId}/feed")
     @ResponseStatus(HttpStatus.OK)
-    public Collection<UserFeedMessage> geUserFeed(@PathVariable("userId") Long userId) {
+    public Collection<UserFeedMessage> getUserFeed(@PathVariable("userId") Long userId) {
         return userService.findUserEvents(userId);
     }
 
