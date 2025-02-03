@@ -88,7 +88,6 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
             "LIMIT ?";
     private static final String SEARCH_PARAM_DIRECTOR_NAME = " D.NAME like ?";
     private static final String SEARCH_PARAM_FILM_NAME = " F.NAME like ?";
-    private static final String SEARCH_BY_BOTH_PARAMS = String.format("%s OR %s", SEARCH_PARAM_FILM_NAME, SEARCH_PARAM_DIRECTOR_NAME);
     private static final String INSERT_FILM_GENRE_QUERY = "INSERT INTO film_genre (film_Id, genre_Id)" +
             "VALUES (?, ?)";
     private static final String INSERT_FILM_DIRECTOR_QUERY = "INSERT INTO film_directors (film_Id, director_Id)" +
@@ -119,8 +118,6 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
     private static final String ORDER_BY_RELEASE = "year";
     private static final String TITLE = "title";
     private static final String DIRECTOR = "director";
-    private static final String TITLE_DIRECTOR = "title,director";
-    private static final String DIRECTOR_TITLE = "director,title";
 
     public FilmDbStorage(JdbcTemplate jdbc, FilmRowMapper mapper) {
         super(jdbc, mapper, Film.class);
