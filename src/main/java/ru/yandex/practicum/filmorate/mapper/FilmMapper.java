@@ -5,6 +5,7 @@ import lombok.NoArgsConstructor;
 import ru.yandex.practicum.filmorate.dto.FilmDto;
 import ru.yandex.practicum.filmorate.dto.NewFilmRequest;
 import ru.yandex.practicum.filmorate.dto.UpdateFilmRequest;
+import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.film.Film;
 
 import java.util.HashSet;
@@ -32,37 +33,24 @@ public class FilmMapper {
         dto.setReleaseDate(film.getReleaseDate());
         dto.setDuration(film.getDuration());
         dto.setLikes(film.getLikesSize());
-        dto.setGenres(film.getGenres());
+        dto.setGenres(film.getGenres() == null ? new HashSet<>() : film.getGenres());
         dto.setMpa(film.getMpa());
-        dto.setDirectors(film.getDirectors());
+        dto.setDirectors(film.getDirectors() == null ? new HashSet<>() : film.getDirectors());
         return dto;
     }
 
     public static Film updateFilmFields(Film film, UpdateFilmRequest request) {
-        if (request.hasId()) {
-            if (request.hasName()) {
-                film.setName(request.getName());
-            }
-            if (request.hasDescription()) {
-                film.setDescription(request.getDescription());
-            }
-            if (request.hasReleaseDate()) {
-                film.setReleaseDate(request.getReleaseDate());
-            }
-            if (request.hasDuration()) {
-                film.setDuration(request.getDuration());
-            }
-            if (request.hasGenres()) {
-                film.setGenres(request.getGenres());
-            }
-            if (request.hasMpa()) {
-                film.setMpa(request.getMpa());
-            }
-            if (request.getDirectors() != null) {
-                film.setDirectors(request.getDirectors());
-            }
+        if (request.getId() != null) {
+            film.setName(request.getName());
+            film.setDescription(request.getDescription());
+            film.setReleaseDate(request.getReleaseDate());
+            film.setDuration(request.getDuration());
+            film.setGenres(request.getGenres());
+            film.setMpa(request.getMpa());
+            film.setDirectors(request.getDirectors());
+        } else {
+            throw new ValidationException("не задан id фильма, который требуется обновить");
         }
-
         return film;
     }
 }

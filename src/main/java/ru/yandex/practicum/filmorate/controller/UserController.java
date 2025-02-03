@@ -41,6 +41,7 @@ public class UserController {
     @GetMapping("/{userId}/feed")
     @ResponseStatus(HttpStatus.OK)
     public Collection<UserFeedMessage> getUserFeed(@PathVariable("userId") Long userId) {
+        userService.findUserDto(userId);
         return userService.findUserEvents(userId);
     }
 

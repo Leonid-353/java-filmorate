@@ -85,8 +85,8 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
             "GROUP BY f.id " +
             "ORDER BY COUNT(l.film_id) DESC " +
             "LIMIT ?";
-    private static final String SEARCH_PARAM_DIRECTOR_NAME = " D.NAME like ?";
-    private static final String SEARCH_PARAM_FILM_NAME = " F.NAME like ?";
+    private static final String SEARCH_PARAM_DIRECTOR_NAME = " LOWER(D.NAME) like LOWER(?)";
+    private static final String SEARCH_PARAM_FILM_NAME = " LOWER(F.NAME) like LOWER(?)";
     private static final String INSERT_FILM_GENRE_QUERY = "INSERT INTO film_genre (film_Id, genre_Id)" +
             "VALUES (?, ?)";
     private static final String INSERT_FILM_DIRECTOR_QUERY = "INSERT INTO film_directors (film_Id, director_Id)" +
@@ -159,13 +159,6 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
         return initializeDataFromLinkedTables(films);
     }
 
-    public Collection<Film> initializeDataFromLinkedTables(List<Film> films) {
-        films.forEach(film -> film.setLikes(new HashSet<>(findManyId(FIND_ALL_LIKES, film.getId()))));
-        films.forEach(film -> film.setGenres(new HashSet<>(findMany(FIND_ALL_GENRE, new GenreRowMapper(), film.getId()))));
-        films.forEach(film -> film.setDirectors(new HashSet<>(findMany(FIND_ALL_DIRECTORS, new DirectorRowMapper(), film.getId()))));
-        return films;
-    }
-
     public Optional<String> findMpaName(Long mpaId) {
         if (mpaId < 1 || mpaId > 5) {
             throw new NotFoundException("Рейтинг MPA c id = " + mpaId + " не существует.");
@@ -186,15 +179,15 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
     public Optional<Film> findFilm(Long filmId) {
         return findOne(FIND_BY_ID_QUERY, new FilmRowMapper(), filmId)
                 .map(film -> {
-                    film.setLikes(new HashSet<>(findManyId(FIND_ALL_LIKES, film.getId())));
+                    film.setLikes(new LinkedHashSet<>(findManyId(FIND_ALL_LIKES, film.getId())));
                     return film;
                 })
                 .map(film -> {
-                    film.setGenres(new HashSet<>(findMany(FIND_ALL_GENRE, new GenreRowMapper(), film.getId())));
+                    film.setGenres(new LinkedHashSet<>(findMany(FIND_ALL_GENRE, new GenreRowMapper(), film.getId())));
                     return film;
                 })
                 .map(film -> {
-                    film.setDirectors(new HashSet<>(findMany(FIND_ALL_DIRECTORS, new DirectorRowMapper(), film.getId())));
+                    film.setDirectors(new LinkedHashSet<>(findMany(FIND_ALL_DIRECTORS, new DirectorRowMapper(), film.getId())));
                     return film;
                 })
                 ;
@@ -243,21 +236,26 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
                 newFilm.getMpa().getId(),
                 newFilm.getId()
         );
-        update(DELETE_FILM_GENRE_QUERY, newFilm.getId());
-        for (Genre genre : newFilm.getGenres()) {
-            insert(
-                    INSERT_FILM_GENRE_QUERY,
-                    newFilm.getId(),
-                    genre.getId()
-            );
+        if (newFilm.getGenres() != null) {
+            update(DELETE_FILM_GENRE_QUERY, newFilm.getId());
+            for (Genre genre : newFilm.getGenres()) {
+                insert(
+                        INSERT_FILM_GENRE_QUERY,
+                        newFilm.getId(),
+                        genre.getId()
+                );
+            }
         }
         update(DELETE_FILM_DIRECTOR_QUERY, newFilm.getId());
-        for (Director director : newFilm.getDirectors()) {
-            insert(INSERT_FILM_DIRECTOR_QUERY,
-                    newFilm.getId(),
-                    director.getId());
+        if (newFilm.getDirectors() != null) {
+            for (Director director : newFilm.getDirectors()) {
+                insert(INSERT_FILM_DIRECTOR_QUERY,
+                        newFilm.getId(),
+                        director.getId());
+            }
         }
-        return newFilm;
+        return findFilm(newFilm.getId())
+                .orElseThrow();
     }
 
     @Override
@@ -297,9 +295,16 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
         } else if (year != null) {
             films = findMany(SEARCH_FILMS_BY_YEAR, new FilmRowMapper(), year, count);
         } else {
-           films = findMany(FIND_WITH_LIMIT, new FilmRowMapper(), count);
+            films = findMany(FIND_WITH_LIMIT, new FilmRowMapper(), count);
         }
         return initializeDataFromLinkedTables(films);
+    }
+
+    public Collection<Film> initializeDataFromLinkedTables(List<Film> films) {
+        films.forEach(film -> film.setLikes(new HashSet<>(findManyId(FIND_ALL_LIKES, film.getId()))));
+        films.forEach(film -> film.setGenres(new HashSet<>(findMany(FIND_ALL_GENRE, new GenreRowMapper(), film.getId()))));
+        films.forEach(film -> film.setDirectors(new HashSet<>(findMany(FIND_ALL_DIRECTORS, new DirectorRowMapper(), film.getId()))));
+        return films;
     }
 
 }

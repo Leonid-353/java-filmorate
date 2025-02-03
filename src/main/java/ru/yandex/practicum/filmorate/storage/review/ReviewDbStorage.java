@@ -27,7 +27,7 @@ public class ReviewDbStorage extends BaseDbStorage<Review> implements ReviewStor
             "(review_id, user_id, like_dislike) " +
             "VALUES (?, ?, ?)";
     private static final String UPDATE_QUERY = "UPDATE reviews " +
-            "SET content = ?, is_positive = ?, user_id = ?, film_id = ? " +
+            "SET content = ?, is_positive = ? " +
             "WHERE id = ?";
     private static final String UPDATE_USEFUL_QUERY = "UPDATE reviews " +
             "SET useful = ? WHERE id = ?";
@@ -80,8 +80,6 @@ public class ReviewDbStorage extends BaseDbStorage<Review> implements ReviewStor
                 UPDATE_QUERY,
                 newReview.getContent(),
                 newReview.isPositive(),
-                newReview.getUserId(),
-                newReview.getFilmId(),
                 newReview.getId()
         );
         return newReview;

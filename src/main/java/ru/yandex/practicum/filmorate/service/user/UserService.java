@@ -109,7 +109,7 @@ public class UserService {
             userDbStorage.addFriendRequest(user.getId(), friend.getId());
             userDbStorage.confirmationFriend(user.getId(), friend.getId());
             userDbStorage.confirmationFriend(friend.getId(), user.getId());
-            eventPublisher.publishEvent(new UserFeedEvent(this, userId, FeedEventType.FRIEND, FeedOperations.UPDATE, friendId));
+            eventPublisher.publishEvent(new UserFeedEvent(this, friendId, FeedEventType.FRIEND, FeedOperations.ADD, userId));
         } else {
             throw new DuplicatedDataException("Запрос на добавление в друзья уже отправлен");
         }
