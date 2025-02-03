@@ -71,6 +71,7 @@ public class UserService {
 
     public void removeUser(Long userId) {
         userDbStorage.removeUser(userId);
+        feedDbStorage.deleteEvents(userId);
     }
 
     public Collection<User> findAllFriendsUser(Long userId) {
