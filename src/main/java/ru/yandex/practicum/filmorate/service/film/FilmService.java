@@ -85,8 +85,12 @@ public class FilmService {
                 .orElseThrow(() -> new NotFoundException("Фильм не найден"));
         Mpa filmMpa = updateFilm.getMpa();
         filmMpa.setName(filmDbStorage.findMpaName(filmMpa.getId()).orElseThrow());
-        updateFilm.getGenres().forEach(genre -> genre.setName(filmDbStorage.findGenreName(genre.getId()).orElseThrow()));
-        updateFilm.getDirectors().forEach(director -> director.setName(directorDbStorage.getDirector(director.getId()).getName()));
+        if (updateFilm.getGenres() != null) {
+            updateFilm.getGenres().forEach(genre -> genre.setName(filmDbStorage.findGenreName(genre.getId()).orElseThrow()));
+        }
+        if (updateFilm.getDirectors() != null) {
+            updateFilm.getDirectors().forEach(director -> director.setName(directorDbStorage.getDirector(director.getId()).getName()));
+        }
         filmDbStorage.updateFilm(updateFilm);
         return FilmMapper.mapToFilmDto(updateFilm);
     }
@@ -97,10 +101,8 @@ public class FilmService {
     }
 
     // Получение популярных фильмов
-    public Collection<FilmDto> findPopularFilms(Long count) {
-        return filmDbStorage.findAllFilms().stream()
-                .sorted(Comparator.comparing(Film::getLikesSize).reversed())
-                .limit(count)
+    public Collection<FilmDto> findPopularFilms(Long count, Long genreId, Long year) {
+        return filmDbStorage.findFilmsByGenreYear(genreId, year, count).stream()
                 .map(FilmMapper::mapToFilmDto)
                 .toList();
     }
@@ -111,8 +113,8 @@ public class FilmService {
         User user = userDbStorage.findUser(userId).orElseThrow();
         if (film.addUserIdInLikes(user.getId())) {
             filmDbStorage.likeIt(filmId, userId);
-            eventPublisher.publishEvent(new UserFeedEvent(this, userId, FeedEventType.LIKE, FeedOperations.ADD, filmId));
         }
+        eventPublisher.publishEvent(new UserFeedEvent(this, userId, FeedEventType.LIKE, FeedOperations.ADD, filmId));
     }
 
     // Удалить лайк
@@ -170,6 +172,7 @@ public class FilmService {
     }
 
     public Collection<FilmDto> getFilmsByDirectorId(Long directorId, String orderBy) {
+        getDirectorById(directorId);
         return filmDbStorage.findFilmsByDirectorId(directorId, orderBy)
                 .stream()
                 .map(FilmMapper::mapToFilmDto)

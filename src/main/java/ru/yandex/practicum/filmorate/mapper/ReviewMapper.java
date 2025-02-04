@@ -40,12 +40,6 @@ public class ReviewMapper {
             if (request.hasPositive()) {
                 review.setPositive(request.getIsPositive());
             }
-            if (request.hasUserId()) {
-                review.setUserId(request.getUserId());
-            }
-            if (request.hasFilmId()) {
-                review.setFilmId(request.getFilmId());
-            }
         }
         return review;
     }

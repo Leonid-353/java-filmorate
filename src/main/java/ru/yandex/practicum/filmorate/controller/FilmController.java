@@ -50,8 +50,11 @@ public class FilmController {
 
     @GetMapping("/popular")
     @ResponseStatus(HttpStatus.OK)
-    public Collection<FilmDto> findPopularFilms(@RequestParam(defaultValue = "10") Long count) {
-        return filmService.findPopularFilms(count);
+    public Collection<FilmDto> findPopularFilms(@RequestParam(defaultValue = "10") Long count,
+                                                @RequestParam(required = false) @Min(value = 1) Long genreId,
+                                                @RequestParam(required = false) Long year
+    ) {
+        return filmService.findPopularFilms(count, genreId, year);
     }
 
     @GetMapping("/common")
@@ -87,7 +90,7 @@ public class FilmController {
     }
 
     @DeleteMapping("/{filmId}/like/{userId}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @ResponseStatus(HttpStatus.OK)
     public void removeLikes(@PathVariable("filmId") Long filmId,
                             @PathVariable("userId") Long userId) {
         filmService.removeLikes(filmId, userId);

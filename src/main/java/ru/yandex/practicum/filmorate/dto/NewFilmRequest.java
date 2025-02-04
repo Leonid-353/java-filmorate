@@ -11,7 +11,7 @@ import ru.yandex.practicum.filmorate.model.film.Mpa;
 import ru.yandex.practicum.filmorate.validation.FilmMinimumReleaseDate;
 
 import java.time.LocalDate;
-import java.util.Set;
+import java.util.LinkedHashSet;
 
 @Data
 public class NewFilmRequest {
@@ -24,7 +24,7 @@ public class NewFilmRequest {
     private LocalDate releaseDate;
     @Positive(message = "Продолжительность фильма должна быть положительным числом")
     private Integer duration;
-    private Set<Genre> genres;
-    private Set<Director> directors;
+    private LinkedHashSet<Genre> genres;
+    private LinkedHashSet<Director> directors;
     private Mpa mpa;
 }
