@@ -113,8 +113,8 @@ public class FilmService {
         User user = userDbStorage.findUser(userId).orElseThrow();
         if (film.addUserIdInLikes(user.getId())) {
             filmDbStorage.likeIt(filmId, userId);
-            eventPublisher.publishEvent(new UserFeedEvent(this, userId, FeedEventType.LIKE, FeedOperations.ADD, filmId));
         }
+        eventPublisher.publishEvent(new UserFeedEvent(this, userId, FeedEventType.LIKE, FeedOperations.ADD, filmId));
     }
 
     // Удалить лайк
