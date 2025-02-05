@@ -1,16 +1,22 @@
 package ru.yandex.practicum.filmorate.service.film;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
+import ru.yandex.practicum.filmorate.constants.FeedEventType;
+import ru.yandex.practicum.filmorate.constants.FeedOperations;
 import ru.yandex.practicum.filmorate.dto.FilmDto;
 import ru.yandex.practicum.filmorate.dto.NewFilmRequest;
 import ru.yandex.practicum.filmorate.dto.UpdateFilmRequest;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
+import ru.yandex.practicum.filmorate.listener.UserFeedEvent;
 import ru.yandex.practicum.filmorate.mapper.FilmMapper;
+import ru.yandex.practicum.filmorate.model.film.Director;
 import ru.yandex.practicum.filmorate.model.film.Film;
 import ru.yandex.practicum.filmorate.model.film.Genre;
 import ru.yandex.practicum.filmorate.model.film.Mpa;
 import ru.yandex.practicum.filmorate.model.user.User;
+import ru.yandex.practicum.filmorate.storage.director.DirectorDbStorage;
 import ru.yandex.practicum.filmorate.storage.film.FilmDbStorage;
 import ru.yandex.practicum.filmorate.storage.genre.GenreDbStorage;
 import ru.yandex.practicum.filmorate.storage.mpa.MpaDbStorage;
@@ -26,16 +32,22 @@ public class FilmService {
     private final UserDbStorage userDbStorage;
     private final GenreDbStorage genreDbStorage;
     private final MpaDbStorage mpaDbStorage;
+    private final DirectorDbStorage directorDbStorage;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Autowired
     public FilmService(FilmDbStorage filmDbStorage,
                        UserDbStorage userDbStorage,
                        GenreDbStorage genreDbStorage,
-                       MpaDbStorage mpaDbStorage) {
+                       MpaDbStorage mpaDbStorage,
+                       DirectorDbStorage directorDbStorage,
+                       ApplicationEventPublisher eventPublisher) {
         this.filmDbStorage = filmDbStorage;
         this.userDbStorage = userDbStorage;
         this.genreDbStorage = genreDbStorage;
         this.mpaDbStorage = mpaDbStorage;
+        this.directorDbStorage = directorDbStorage;
+        this.eventPublisher = eventPublisher;
     }
 
     // Получение всех фильмов
@@ -56,7 +68,9 @@ public class FilmService {
     public FilmDto createFilm(NewFilmRequest newFilmRequest) {
         Film film = FilmMapper.mapToFilm(newFilmRequest);
         Mpa filmMpa = film.getMpa();
-        filmMpa.setName(filmDbStorage.findMpaName(filmMpa.getId()).orElseThrow());
+        if (filmMpa != null) {
+            filmMpa.setName(filmDbStorage.findMpaName(filmMpa.getId()).orElseThrow());
+        }
         if (film.getGenres() != null) {
             film.getGenres().forEach(genre -> genre.setName(filmDbStorage.findGenreName(genre.getId()).orElseThrow()));
         }
@@ -71,7 +85,12 @@ public class FilmService {
                 .orElseThrow(() -> new NotFoundException("Фильм не найден"));
         Mpa filmMpa = updateFilm.getMpa();
         filmMpa.setName(filmDbStorage.findMpaName(filmMpa.getId()).orElseThrow());
-        updateFilm.getGenres().forEach(genre -> genre.setName(filmDbStorage.findGenreName(genre.getId()).orElseThrow()));
+        if (updateFilm.getGenres() != null) {
+            updateFilm.getGenres().forEach(genre -> genre.setName(filmDbStorage.findGenreName(genre.getId()).orElseThrow()));
+        }
+        if (updateFilm.getDirectors() != null) {
+            updateFilm.getDirectors().forEach(director -> director.setName(directorDbStorage.getDirector(director.getId()).getName()));
+        }
         filmDbStorage.updateFilm(updateFilm);
         return FilmMapper.mapToFilmDto(updateFilm);
     }
@@ -82,10 +101,8 @@ public class FilmService {
     }
 
     // Получение популярных фильмов
-    public Collection<FilmDto> findPopularFilms(Long count) {
-        return filmDbStorage.findAllFilms().stream()
-                .sorted(Comparator.comparing(Film::getLikesSize).reversed())
-                .limit(count)
+    public Collection<FilmDto> findPopularFilms(Long count, Long genreId, Long year) {
+        return filmDbStorage.findFilmsByGenreYear(genreId, year, count).stream()
                 .map(FilmMapper::mapToFilmDto)
                 .toList();
     }
@@ -97,6 +114,7 @@ public class FilmService {
         if (film.addUserIdInLikes(user.getId())) {
             filmDbStorage.likeIt(filmId, userId);
         }
+        eventPublisher.publishEvent(new UserFeedEvent(this, userId, FeedEventType.LIKE, FeedOperations.ADD, filmId));
     }
 
     // Удалить лайк
@@ -105,6 +123,7 @@ public class FilmService {
         User user = userDbStorage.findUser(userId).orElseThrow();
         if (film.removeUserIdInLikes(user.getId())) {
             filmDbStorage.removeLikes(filmId, userId);
+            eventPublisher.publishEvent(new UserFeedEvent(this, userId, FeedEventType.LIKE, FeedOperations.REMOVE, filmId));
         }
     }
 
@@ -130,5 +149,48 @@ public class FilmService {
     // Получить возрастной рейтинг mpa по id
     public Mpa findMpaById(Long mpaId) {
         return mpaDbStorage.findMpaById(mpaId).orElseThrow();
+    }
+
+    public Director getDirectorById(Long directorId) {
+        return directorDbStorage.getDirector(directorId);
+    }
+
+    public Collection<Director> getAllDirectors() {
+        return directorDbStorage.getDirectors();
+    }
+
+    public Director addDirector(Director director) {
+        return directorDbStorage.addDirector(director);
+    }
+
+    public Director updateDirector(Director director) {
+        return directorDbStorage.updateDirector(director);
+    }
+
+    public void deleteDirector(Long directorId) {
+        directorDbStorage.deleteDirector(directorId);
+    }
+
+    public Collection<FilmDto> getFilmsByDirectorId(Long directorId, String orderBy) {
+        getDirectorById(directorId);
+        return filmDbStorage.findFilmsByDirectorId(directorId, orderBy)
+                .stream()
+                .map(FilmMapper::mapToFilmDto)
+                .toList();
+    }
+
+    public Collection<FilmDto> searchFilmsByTitleOrDirectorName(String query, String searchParam) {
+        return filmDbStorage.findFilmsByTitleOrDirectorName(query, searchParam)
+                .stream()
+                .map(FilmMapper::mapToFilmDto)
+                .toList();
+    }
+
+    public Collection<FilmDto> findCommonFilms(Long userId, Long friendId) {
+        return filmDbStorage.initializeDataFromLinkedTables(filmDbStorage.findCommonFilms(userId, friendId))
+                .stream()
+                .sorted(Comparator.comparing(Film::getLikesSize).reversed())
+                .map(FilmMapper::mapToFilmDto)
+                .toList();
     }
 }

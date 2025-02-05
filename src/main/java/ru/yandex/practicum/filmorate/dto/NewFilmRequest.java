@@ -5,12 +5,13 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
+import ru.yandex.practicum.filmorate.model.film.Director;
 import ru.yandex.practicum.filmorate.model.film.Genre;
 import ru.yandex.practicum.filmorate.model.film.Mpa;
 import ru.yandex.practicum.filmorate.validation.FilmMinimumReleaseDate;
 
 import java.time.LocalDate;
-import java.util.Set;
+import java.util.LinkedHashSet;
 
 @Data
 public class NewFilmRequest {
@@ -23,6 +24,7 @@ public class NewFilmRequest {
     private LocalDate releaseDate;
     @Positive(message = "Продолжительность фильма должна быть положительным числом")
     private Integer duration;
-    private Set<Genre> genres;
+    private LinkedHashSet<Genre> genres;
+    private LinkedHashSet<Director> directors;
     private Mpa mpa;
 }

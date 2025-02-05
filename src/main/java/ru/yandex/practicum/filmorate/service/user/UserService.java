@@ -1,28 +1,45 @@
 package ru.yandex.practicum.filmorate.service.user;
 
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
+import ru.yandex.practicum.filmorate.constants.FeedEventType;
+import ru.yandex.practicum.filmorate.constants.FeedOperations;
+import ru.yandex.practicum.filmorate.dto.FilmDto;
 import ru.yandex.practicum.filmorate.dto.NewUserRequest;
 import ru.yandex.practicum.filmorate.dto.UpdateUserRequest;
 import ru.yandex.practicum.filmorate.dto.UserDto;
 import ru.yandex.practicum.filmorate.exception.DuplicatedDataException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
+import ru.yandex.practicum.filmorate.listener.UserFeedEvent;
+import ru.yandex.practicum.filmorate.mapper.FilmMapper;
 import ru.yandex.practicum.filmorate.mapper.UserMapper;
+import ru.yandex.practicum.filmorate.model.feed.UserFeedMessage;
+import ru.yandex.practicum.filmorate.model.film.Film;
 import ru.yandex.practicum.filmorate.model.user.User;
+import ru.yandex.practicum.filmorate.storage.feed.FeedDbStorage;
+import ru.yandex.practicum.filmorate.storage.film.FilmDbStorage;
 import ru.yandex.practicum.filmorate.storage.user.UserDbStorage;
 
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 @Service
 public class UserService {
     private final UserDbStorage userDbStorage;
+    private final FilmDbStorage filmDbStorage;
+    private final FeedDbStorage feedDbStorage;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Autowired
-    public UserService(UserDbStorage userDbStorage) {
+    public UserService(UserDbStorage userDbStorage,
+                       FilmDbStorage filmDbStorage,
+                       FeedDbStorage feedDbStorage,
+                       ApplicationEventPublisher eventPublisher) {
         this.userDbStorage = userDbStorage;
+        this.filmDbStorage = filmDbStorage;
+        this.feedDbStorage = feedDbStorage;
+        this.eventPublisher = eventPublisher;
     }
 
     public Collection<UserDto> findAllUsersDto() {
@@ -54,6 +71,7 @@ public class UserService {
 
     public void removeUser(Long userId) {
         userDbStorage.removeUser(userId);
+        feedDbStorage.deleteEvents(userId);
     }
 
     public Collection<User> findAllFriendsUser(Long userId) {
@@ -85,11 +103,14 @@ public class UserService {
         if (!user.getFriends().contains(friend.getId()) && !friend.getFriends().contains(user.getId())) {
             user.addFriendId(friend.getId());
             userDbStorage.addFriendRequest(userId, friendId);
+            eventPublisher.publishEvent(new UserFeedEvent(this, userId, FeedEventType.FRIEND, FeedOperations.ADD, friendId));
         } else if (!user.getFriends().contains(friend.getId()) && friend.getFriends().contains(user.getId())) {
             user.addFriendId(friend.getId());
             userDbStorage.addFriendRequest(user.getId(), friend.getId());
             userDbStorage.confirmationFriend(user.getId(), friend.getId());
             userDbStorage.confirmationFriend(friend.getId(), user.getId());
+            eventPublisher.publishEvent(new UserFeedEvent(this, friendId, FeedEventType.FRIEND, FeedOperations.ADD, userId));
+            eventPublisher.publishEvent(new UserFeedEvent(this, userId, FeedEventType.FRIEND, FeedOperations.UPDATE, friendId));
         } else {
             throw new DuplicatedDataException("Запрос на добавление в друзья уже отправлен");
         }
@@ -119,6 +140,54 @@ public class UserService {
         if (user.removeFriendId(friend.getId())) {
             friend.removeFriendId(user.getId());
             userDbStorage.unfriend(userId, friendId);
+            eventPublisher.publishEvent(new UserFeedEvent(this, userId, FeedEventType.FRIEND, FeedOperations.REMOVE, friendId));
         }
+    }
+
+    public Collection<FilmDto> findRecommendations(Long userId) {
+        userDbStorage.findUser(userId).orElseThrow();
+        Collection<Film> filmsUserLike = filmDbStorage.findFilmsLike(userId);
+        Collection<User> similarUsers = userDbStorage.findUsersByFilmsLike(filmsUserLike);
+        //similarUsersWeight - мапа для хранения весов пользователей;
+        // Long - вес пользователя по кол-ву совпавших фильмов, чем больше совпадений тем больше вес такого пользователя
+        Map<User, Long> similarUsersWeight = new HashMap<>();
+        //similarUsersFilm мапа для хранения фильмов пользователей которые они лайкнули;
+        Map<User, Collection<Film>> similarUsersFilm = new HashMap<>();
+
+        //Находим вес каждого пользователя + попутно заполняем фильмы которые лайкнул пользователь
+        for (User user : similarUsers) {
+            Collection<Film> filmsSimilarUserLike = filmDbStorage.findFilmsLike(user.getId());
+            similarUsersFilm.put(user, filmsSimilarUserLike);
+            Long count = filmsSimilarUserLike.stream()
+                    .filter(filmsUserLike::contains)
+                    .count();
+            similarUsersWeight.put(user, count);
+        }
+
+        // movieScore - мапа с фильмами которые лайкнули похожие пользователи
+        Map<Film, Long> movieScore = new HashMap<>();
+
+
+        for (Map.Entry<User, Long> entry : similarUsersWeight.entrySet()) {
+            User user = entry.getKey();
+            Long weight = entry.getValue();  //вес пользователя
+            for (Film film : similarUsersFilm.get(user)) {
+                if (!filmsUserLike.contains(film)) {   // Исключаем уже лайкнутые фильмы
+                    movieScore.put(film, movieScore.getOrDefault(film, 0L) + weight);
+                }
+            }
+        }
+
+        return filmDbStorage.initializeDataFromLinkedTables(movieScore.entrySet().stream()
+                        .sorted((entry1, entry2) -> entry2.getValue().compareTo(entry1.getValue()))
+                        .map(Map.Entry::getKey)
+                        .toList())
+                .stream()
+                .map(FilmMapper::mapToFilmDto)
+                .toList();
+    }
+
+    public Collection<UserFeedMessage> findUserEvents(Long userId) {
+        return feedDbStorage.getEvents(userId);
     }
 }

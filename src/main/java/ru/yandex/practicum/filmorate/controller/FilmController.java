@@ -1,6 +1,8 @@
 package ru.yandex.practicum.filmorate.controller;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.Positive;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
@@ -31,8 +33,36 @@ public class FilmController {
 
     @GetMapping("/{filmId}")
     @ResponseStatus(HttpStatus.OK)
-    public FilmDto findFilm(@PathVariable("filmId") Long filmId) {
+    public FilmDto findFilm(@PathVariable("filmId") @Positive Long filmId) {
         return filmService.findFilmDto(filmId);
+    }
+
+    @GetMapping("/director/{directorId}")
+    @ResponseStatus(HttpStatus.OK)
+    public Collection<FilmDto> getFilmsByDirector(@PathVariable @Positive Long directorId,
+                                                  @RequestParam(required = false, defaultValue = "") String sortBy) {
+        return filmService.getFilmsByDirectorId(directorId, sortBy);
+    }
+
+    @GetMapping("/search")
+    public Collection<FilmDto> findFilmsByTitleOrDirectorName(@RequestParam String query, @RequestParam String by) {
+        return filmService.searchFilmsByTitleOrDirectorName(query, by);
+    }
+
+    @GetMapping("/popular")
+    @ResponseStatus(HttpStatus.OK)
+    public Collection<FilmDto> findPopularFilms(@RequestParam(defaultValue = "10") Long count,
+                                                @RequestParam(required = false) @Min(value = 1) Long genreId,
+                                                @RequestParam(required = false) Long year
+    ) {
+        return filmService.findPopularFilms(count, genreId, year);
+    }
+
+    @GetMapping("/common")
+    @ResponseStatus(HttpStatus.OK)
+    public Collection<FilmDto> findCommonFilms(@Min(value = 1) @RequestParam Long userId,
+                                               @Min(value = 1) @RequestParam Long friendId) {
+        return filmService.findCommonFilms(userId, friendId);
     }
 
     @PostMapping
@@ -47,29 +77,23 @@ public class FilmController {
         return filmService.updateFilm(newFilmRequest);
     }
 
-    @DeleteMapping("/{filmId}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void removeFilm(@PathVariable("filmId") Long filmId) {
-        filmService.removeFilm(filmId);
-    }
-
-    @GetMapping("/popular")
-    @ResponseStatus(HttpStatus.OK)
-    public Collection<FilmDto> findPopularFilms(@RequestParam(defaultValue = "10") Long count) {
-        return filmService.findPopularFilms(count);
-    }
-
     @PutMapping("/{filmId}/like/{userId}")
     @ResponseStatus(HttpStatus.OK)
-    public void likeIt(@PathVariable("filmId") Long filmId,
-                       @PathVariable("userId") Long userId) {
+    public void likeIt(@PathVariable("filmId") @Positive Long filmId,
+                       @PathVariable("userId") @Positive Long userId) {
         filmService.likeIt(filmId, userId);
     }
 
-    @DeleteMapping("/{filmId}/like/{userId}")
+    @DeleteMapping("/{filmId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void removeLikes(@PathVariable("filmId") Long filmId,
-                            @PathVariable("userId") Long userId) {
+    public void removeFilm(@PathVariable("filmId") @Positive Long filmId) {
+        filmService.removeFilm(filmId);
+    }
+
+    @DeleteMapping("/{filmId}/like/{userId}")
+    @ResponseStatus(HttpStatus.OK)
+    public void removeLikes(@PathVariable("filmId") @Positive Long filmId,
+                            @PathVariable("userId") @Positive Long userId) {
         filmService.removeLikes(filmId, userId);
     }
 
