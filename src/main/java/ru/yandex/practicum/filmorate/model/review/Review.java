@@ -2,6 +2,7 @@ package ru.yandex.practicum.filmorate.model.review;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.experimental.FieldDefaults;
@@ -16,6 +17,7 @@ import java.util.Set;
 public class Review {
     Long id;
     @NotBlank
+    @Size(max = 500)
     String content;
     boolean isPositive;
     @NotNull

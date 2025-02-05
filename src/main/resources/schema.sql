@@ -85,7 +85,7 @@ CREATE TABLE IF NOT EXISTS friend_request
 );
 
 --Создаём таблицу истории пользователей
-CREATE TABLE user_feed
+CREATE TABLE IF NOT EXISTS user_feed
 (
     id         INT AUTO_INCREMENT PRIMARY KEY,
     user_id    INTEGER,

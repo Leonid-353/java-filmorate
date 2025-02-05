@@ -2,6 +2,7 @@ package ru.yandex.practicum.filmorate.controller;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.Positive;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
@@ -32,13 +33,13 @@ public class FilmController {
 
     @GetMapping("/{filmId}")
     @ResponseStatus(HttpStatus.OK)
-    public FilmDto findFilm(@PathVariable("filmId") Long filmId) {
+    public FilmDto findFilm(@PathVariable("filmId") @Positive Long filmId) {
         return filmService.findFilmDto(filmId);
     }
 
     @GetMapping("/director/{directorId}")
     @ResponseStatus(HttpStatus.OK)
-    public Collection<FilmDto> getFilmsByDirector(@PathVariable Long directorId,
+    public Collection<FilmDto> getFilmsByDirector(@PathVariable @Positive Long directorId,
                                                   @RequestParam(required = false, defaultValue = "") String sortBy) {
         return filmService.getFilmsByDirectorId(directorId, sortBy);
     }
@@ -92,7 +93,7 @@ public class FilmController {
     @DeleteMapping("/{filmId}/like/{userId}")
     @ResponseStatus(HttpStatus.OK)
     public void removeLikes(@PathVariable("filmId") Long filmId,
-                            @PathVariable("userId") Long userId) {
+                            @PathVariable("userId") @Positive Long userId) {
         filmService.removeLikes(filmId, userId);
     }
 
