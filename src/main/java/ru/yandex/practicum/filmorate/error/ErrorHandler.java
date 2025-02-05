@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.error;
 
+import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -29,6 +30,13 @@ public class ErrorHandler {
                 errors.put(error.getField(), error.getDefaultMessage())
         );
         return ResponseEntity.badRequest().body(errors);
+    }
+
+    @ExceptionHandler(ConstraintViolationException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ErrorResponse handleValidationExceptions(ConstraintViolationException ex) {
+        log.error("Not found {}", ex.getMessage(), ex);
+        return new ErrorResponse("Не найдено", ex.getMessage());
     }
 
     @ExceptionHandler
