@@ -2,6 +2,7 @@ package ru.yandex.practicum.filmorate.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.experimental.FieldDefaults;
@@ -12,6 +13,7 @@ public class UpdateReviewRequest {
     @NotNull
     Long reviewId;
     @NotBlank
+    @Size(max = 500)
     String content;
     @NotNull
     Boolean isPositive;
@@ -36,13 +38,5 @@ public class UpdateReviewRequest {
 
     public boolean hasPositive() {
         return positiveSet;
-    }
-
-    public boolean hasUserId() {
-        return userId != null;
-    }
-
-    public boolean hasFilmId() {
-        return filmId != null;
     }
 }
